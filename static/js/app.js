@@ -58,15 +58,47 @@ class MemDocApp {
 
         this.chapterList.innerHTML = this.chapters.map(chapter => `
             <div class="chapter-item" data-id="${chapter.id}">
-                <div class="chapter-item-title">${this.escapeHtml(chapter.file.replace(/^ch\d+-/, '').replace(/\.md$/, ''))}</div>
+                <div class="chapter-item-content">
+                    <div class="chapter-item-title">${this.escapeHtml(chapter.file.replace(/^ch\d+-/, '').replace(/\.md$/, ''))}</div>
+                </div>
+                <div class="chapter-item-actions">
+                    <button class="btn-edit-chapter" data-id="${chapter.id}" title="Edit chapter">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                            <path d="M10 1l3 3-7 7H3v-3z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button class="btn-delete-chapter" data-id="${chapter.id}" title="Delete chapter">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                            <path d="M1 3h12M5 1h4M5 6v4M9 6v4M3 3l1 9h6l1-9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `).join('');
 
-        // Add click handlers
-        this.chapterList.querySelectorAll('.chapter-item').forEach(item => {
+        // Add click handlers for chapter selection
+        this.chapterList.querySelectorAll('.chapter-item-content').forEach(item => {
             item.addEventListener('click', () => {
-                const chapterId = item.dataset.id;
+                const chapterId = item.parentElement.dataset.id;
                 this.selectChapter(chapterId);
+            });
+        });
+
+        // Add click handlers for edit buttons
+        this.chapterList.querySelectorAll('.btn-edit-chapter').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const chapterId = btn.dataset.id;
+                this.handleEditChapter(chapterId);
+            });
+        });
+
+        // Add click handlers for delete buttons
+        this.chapterList.querySelectorAll('.btn-delete-chapter').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const chapterId = btn.dataset.id;
+                this.handleDeleteChapter(chapterId);
             });
         });
     }
@@ -100,6 +132,65 @@ class MemDocApp {
         } catch (error) {
             console.error('Error creating chapter:', error);
             alert('Failed to create chapter: ' + error.message);
+        }
+    }
+
+    async handleEditChapter(chapterId) {
+        try {
+            // Get current chapter data
+            const chapter = await API.getChapter(chapterId);
+            const currentTitle = chapter.frontmatter.title || '';
+            const currentSubtitle = chapter.frontmatter.subtitle || '';
+
+            // Prompt for new values
+            const newTitle = prompt('Enter new chapter title:', currentTitle);
+            if (!newTitle) return;  // User cancelled
+
+            const newSubtitle = prompt('Enter new subtitle (optional):', currentSubtitle) || '';
+
+            // Update chapter metadata
+            await API.updateChapterMetadata(chapterId, newTitle, newSubtitle);
+
+            // If this is the currently loaded chapter, update the editor fields
+            if (this.editor.currentChapterId === chapterId) {
+                this.editor.titleInput.value = newTitle;
+                this.editor.subtitleInput.value = newSubtitle;
+            }
+
+            // Reload chapter list to show updated title
+            const currentChapter = this.editor.currentChapterId;
+            await this.loadChapters(false);
+            if (currentChapter) {
+                this.selectChapter(currentChapter);
+            }
+        } catch (error) {
+            console.error('Error editing chapter:', error);
+            alert('Failed to edit chapter: ' + error.message);
+        }
+    }
+
+    async handleDeleteChapter(chapterId) {
+        // Get chapter info for confirmation
+        const chapter = this.chapters.find(ch => ch.id === chapterId);
+        const chapterName = chapter ? chapter.file.replace(/^ch\d+-/, '').replace(/\.md$/, '') : 'this chapter';
+
+        if (!confirm(`Are you sure you want to delete "${chapterName}"? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await API.deleteChapter(chapterId);
+
+            // If we deleted the currently loaded chapter, clear the editor
+            if (this.editor.currentChapterId === chapterId) {
+                this.editor.clearEditor();
+            }
+
+            // Reload chapters
+            await this.loadChapters();
+        } catch (error) {
+            console.error('Error deleting chapter:', error);
+            alert('Failed to delete chapter: ' + error.message);
         }
     }
 

@@ -101,8 +101,10 @@ body {
     padding: var(--spacing-sm);
     margin-bottom: var(--spacing-xs);
     border-radius: 4px;
-    cursor: pointer;
     transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
 }
 
 .chapter-item:hover {
@@ -112,6 +114,11 @@ body {
 .chapter-item.active {
     background: var(--color-accent);
     color: white;
+}
+
+.chapter-item-content {
+    flex: 1;
+    cursor: pointer;
 }
 
 .chapter-item-title {
@@ -127,6 +134,60 @@ body {
 
 .chapter-item.active .chapter-item-subtitle {
     color: rgba(255, 255, 255, 0.8);
+}
+
+.chapter-item-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.chapter-item:hover .chapter-item-actions {
+    opacity: 1;
+}
+
+.chapter-item.active .chapter-item-actions {
+    opacity: 1;
+}
+
+.btn-edit-chapter,
+.btn-delete-chapter {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: var(--color-text-light);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-edit-chapter:hover,
+.btn-delete-chapter:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--color-text);
+}
+
+.chapter-item.active .btn-edit-chapter,
+.chapter-item.active .btn-delete-chapter {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.chapter-item.active .btn-edit-chapter:hover,
+.chapter-item.active .btn-delete-chapter:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.btn-delete-chapter:hover {
+    color: #d9534f;
+}
+
+.chapter-item.active .btn-delete-chapter:hover {
+    color: #ff6b6b;
 }
 
 .empty-state {

@@ -89,6 +89,22 @@ const API = {
     },
 
     /**
+     * Update chapter metadata (title, subtitle)
+     */
+    async updateChapterMetadata(chapterId, title, subtitle = '') {
+        const response = await fetch(`/api/chapters/${chapterId}/metadata`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, subtitle })
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
+    },
+
+    /**
      * Delete a chapter
      */
     async deleteChapter(chapterId) {

@@ -171,6 +171,27 @@ class MemoirHandler:
 
         return chapter_id
 
+    def update_chapter_metadata(self, chapter_id: str, title: str, subtitle: str = "") -> None:
+        """
+        Update chapter title and subtitle.
+
+        Args:
+            chapter_id: The chapter ID to update
+            title: New chapter title
+            subtitle: New chapter subtitle
+        """
+        chapter = self.load_chapter(chapter_id)
+        if not chapter:
+            raise ValueError(f"Chapter {chapter_id} not found")
+
+        # Update frontmatter
+        frontmatter = chapter['frontmatter']
+        frontmatter['title'] = title
+        frontmatter['subtitle'] = subtitle
+
+        # Save updated chapter
+        self.save_chapter(chapter_id, frontmatter, chapter['content'])
+
     def delete_chapter(self, chapter_id: str) -> None:
         """
         Delete a chapter.

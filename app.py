@@ -93,6 +93,20 @@ def update_chapter(chapter_id):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/chapters/<chapter_id>/metadata', methods=['PATCH'])
+def update_chapter_metadata(chapter_id):
+    """Update chapter metadata (title, subtitle)."""
+    try:
+        data = request.json
+        title = data.get('title', 'Untitled Chapter')
+        subtitle = data.get('subtitle', '')
+
+        memoir_handler.update_chapter_metadata(chapter_id, title, subtitle)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/chapters/<chapter_id>', methods=['DELETE'])
 def delete_chapter(chapter_id):
     """Delete a chapter."""
