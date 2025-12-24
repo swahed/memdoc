@@ -1,0 +1,84 @@
+{
+  "prompts": [
+    {
+      "category": "Childhood",
+      "questions": [
+        "What is your earliest memory?",
+        "Describe the house or place you grew up in.",
+        "Who was your best friend as a child?",
+        "What games did you play growing up?",
+        "What was your favorite meal as a child?"
+      ]
+    },
+    {
+      "category": "Family",
+      "questions": [
+        "Describe your parents or guardians.",
+        "What family traditions did you have?",
+        "Tell a story about a family gathering.",
+        "Who in your family influenced you the most?",
+        "What did you learn from your grandparents?"
+      ]
+    },
+    {
+      "category": "Education",
+      "questions": [
+        "What was your favorite subject in school?",
+        "Describe a teacher who made a difference.",
+        "What was the hardest thing you learned?",
+        "Tell a story from your school days.",
+        "What skills did you develop in school?"
+      ]
+    },
+    {
+      "category": "Relationships",
+      "questions": [
+        "How did you meet someone important in your life?",
+        "Describe a friendship that shaped you.",
+        "What have you learned about love?",
+        "Tell a story about an unexpected connection.",
+        "Who has been your greatest support?"
+      ]
+    },
+    {
+      "category": "Work & Career",
+      "questions": [
+        "What was your first job?",
+        "Describe a career achievement you're proud of.",
+        "What challenges did you face in your work?",
+        "Who was a mentor or colleague who helped you?",
+        "What did your work teach you about yourself?"
+      ]
+    },
+    {
+      "category": "Turning Points",
+      "questions": [
+        "Describe a moment that changed your life.",
+        "What decision are you most proud of?",
+        "Tell about a time you overcame a challenge.",
+        "What event shaped who you are today?",
+        "When did you discover your passion or purpose?"
+      ]
+    },
+    {
+      "category": "Lessons & Wisdom",
+      "questions": [
+        "What's the most important lesson you've learned?",
+        "What advice would you give your younger self?",
+        "What do you wish everyone knew?",
+        "What have you learned about happiness?",
+        "What matters most to you now?"
+      ]
+    },
+    {
+      "category": "Memories & Moments",
+      "questions": [
+        "Describe a perfect day from your past.",
+        "What's a small moment you treasure?",
+        "Tell about a time you laughed until you cried.",
+        "What's a place that holds special meaning?",
+        "Describe a sensory memory (smell, sound, taste)."
+      ]
+    }
+  ]
+}
