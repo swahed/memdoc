@@ -1,0 +1,78 @@
+# MemDoc - Memoir Writing Tool
+
+## Critical Context
+- **Purpose**: Personal memoir tool for 1-2 users (mom + family)
+- **Scale**: Single memoir, ~200-300 pages, local-only
+- **Privacy**: CRITICAL - No external APIs with personal content
+- **Philosophy**: Simple > Complex, Working > Perfect, Readable > Clever
+
+## Key Constraints
+- Mom is retired CS specialist - keep code readable for her
+- Fixed prompts only (no AI API calls with memoir content)
+- Git clone = install, git pull = update
+- OneDrive sync for backup (user-controlled)
+- No feature bloat - resist the urge to over-engineer
+
+## Architecture (Quick Reference)
+- **Storage**: One markdown file per chapter in data/chapters/
+- **Metadata**: memoir.json for chapter order and memoir-level info
+- **Stack**: Python 3.10+, Flask, Eel (for desktop wrapper)
+- **Frontend**: Vanilla HTML/CSS/JS (no frameworks)
+- **PDF**: WeasyPrint (HTML/CSS to print-quality PDF)
+- **UI**: iA Writer-inspired (minimal, typography-focused, distraction-free)
+
+## File Structure
+```
+data/
+├── memoir.json              # Metadata & chapter order
+├── chapters/
+│   ├── ch001-early-years.md
+│   ├── ch002-college-days.md
+│   └── ...
+└── images/                  # Shared images
+```
+
+## What NOT to Do
+- ❌ Add features not in ROADMAP.md without asking
+- ❌ Send memoir content to external APIs
+- ❌ Complex abstractions for 1-2 users
+- ❌ Heavy frameworks when vanilla works
+- ❌ Premature optimization
+- ❌ Backwards compatibility hacks
+- ❌ Over-engineering for hypothetical scaling
+
+## What TO Do
+- ✅ Keep code simple and readable (mom might contribute)
+- ✅ Follow existing patterns in codebase
+- ✅ Check ROADMAP.md before adding features
+- ✅ Consider privacy implications always
+- ✅ Ask questions when approach is unclear
+- ✅ Explain your approach (educational value for Python learner)
+
+## Development Workflow
+- Run in browser during dev: `python app.py --browser`
+- Desktop mode later via Eel wrapper
+- User has .NET/JS experience, learning Python
+- Keep Python beginner-friendly
+
+## Documentation
+- **README.md** - User-facing quick start
+- **docs/ROADMAP.md** - Feature backlog and implementation phases
+- **docs/ARCHITECTURE.md** - Technical design and decisions
+- **docs/DEVELOPMENT.md** - Development guidelines and common tasks
+- **docs/AI_CONTEXT.md** - Comprehensive context for AI assistants (detailed)
+
+## Current Phase
+**Phase 1: MVP** - Core writing experience
+Next task: Set up project structure and dependencies
+
+## Key Question Before Any Change
+**"Does this help mom write her memoirs better?"**
+- If yes → do it simply
+- If no → don't do it
+- If unsure → ask the user
+
+## User Context
+- Developer: .NET/JS background, learning Python
+- End user (mom): Retired CS specialist, tech-savvy
+- Both value simplicity and elegance over feature richness
