@@ -1,18 +1,22 @@
 # MemDoc Dependencies
 
-# Web Framework
+# === Core Dependencies (Required for basic functionality) ===
 Flask==3.0.0
-Eel==0.16.0
-
-# Markdown Processing
 PyYAML==6.0.1
 markdown2==2.4.12
 
-# PDF Generation
-WeasyPrint==60.2
+# === Optional Dependencies ===
+# Note: These may require build tools on Windows
+# For now, basic memoir writing works without them
 
-# Image Processing
-Pillow==10.1.0
+# Desktop mode (Phase 6)
+# Eel==0.16.0
 
-# Development (optional)
+# PDF Generation (Phase 5)
+# WeasyPrint==60.2
+
+# Image Processing (Phase 3)
+# Pillow==10.1.0
+
+# Development
 # pytest==7.4.3

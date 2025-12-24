@@ -62,9 +62,22 @@ data/
 - **docs/DEVELOPMENT.md** - Development guidelines and common tasks
 - **docs/AI_CONTEXT.md** - Comprehensive context for AI assistants (detailed)
 
-## Current Phase
-**Phase 1: MVP** - Core writing experience
-Next task: Set up project structure and dependencies
+## Current Status
+**Phase 1: MVP** - Core writing experience (mostly complete)
+
+✅ Completed:
+- Project structure and dependencies
+- Flask app with iA Writer-inspired UI
+- Chapter creation and management
+- Auto-save functionality
+- Writing prompts sidebar
+- Word count tracking
+
+🚧 In Progress:
+- Markdown formatting buttons (bold, italic)
+- Chapter management improvements
+
+Next up: Phase 2 features (events, timeline, search)
 
 ## Key Question Before Any Change
 **"Does this help mom write her memoirs better?"**
