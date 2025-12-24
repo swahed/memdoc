@@ -105,6 +105,22 @@ const API = {
     },
 
     /**
+     * Reorder a chapter (move up or down)
+     */
+    async reorderChapter(chapterId, direction) {
+        const response = await fetch(`/api/chapters/${chapterId}/reorder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ direction })
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
+    },
+
+    /**
      * Delete a chapter
      */
     async deleteChapter(chapterId) {

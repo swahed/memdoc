@@ -214,6 +214,40 @@ class MemoirHandler:
         memoir['chapters'] = [ch for ch in memoir['chapters'] if ch['id'] != chapter_id]
         self.save_memoir_metadata(memoir)
 
+    def reorder_chapters(self, chapter_id: str, direction: str) -> None:
+        """
+        Move a chapter up or down in the order.
+
+        Args:
+            chapter_id: The chapter ID to move
+            direction: 'up' or 'down'
+        """
+        memoir = self.load_memoir_metadata()
+        chapters = memoir['chapters']
+
+        # Find current index
+        current_index = next((i for i, ch in enumerate(chapters) if ch['id'] == chapter_id), None)
+        if current_index is None:
+            return
+
+        # Calculate new index
+        if direction == 'up' and current_index > 0:
+            new_index = current_index - 1
+        elif direction == 'down' and current_index < len(chapters) - 1:
+            new_index = current_index + 1
+        else:
+            return  # Can't move further
+
+        # Swap chapters
+        chapters[current_index], chapters[new_index] = chapters[new_index], chapters[current_index]
+
+        # Update order numbers
+        for i, chapter in enumerate(chapters):
+            chapter['order'] = i + 1
+
+        # Save updated metadata
+        self.save_memoir_metadata(memoir)
+
     def list_chapters(self) -> List[Dict]:
         """
         Get list of all chapters with their metadata.

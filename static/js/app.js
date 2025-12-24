@@ -56,13 +56,27 @@ class MemDocApp {
             return;
         }
 
-        this.chapterList.innerHTML = this.chapters.map(chapter => `
+        this.chapterList.innerHTML = this.chapters.map((chapter, index) => `
             <div class="chapter-item" data-id="${chapter.id}">
                 <div class="chapter-item-content">
                     <div class="chapter-item-title">${this.escapeHtml(chapter.title || 'Untitled Chapter')}</div>
                     ${chapter.subtitle ? `<div class="chapter-item-subtitle">${this.escapeHtml(chapter.subtitle)}</div>` : ''}
                 </div>
                 <div class="chapter-item-actions">
+                    ${index > 0 ? `
+                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="up" title="Move up">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                                <path d="M7 11V3M4 6l3-3 3 3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    ` : '<span style="width: 22px"></span>'}
+                    ${index < this.chapters.length - 1 ? `
+                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="down" title="Move down">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                                <path d="M7 3v8M4 8l3 3 3-3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    ` : '<span style="width: 22px"></span>'}
                     <button class="btn-edit-chapter" data-id="${chapter.id}" title="Edit chapter">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
                             <path d="M10 1l3 3-7 7H3v-3z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -100,6 +114,16 @@ class MemDocApp {
                 e.stopPropagation();
                 const chapterId = btn.dataset.id;
                 this.handleDeleteChapter(chapterId);
+            });
+        });
+
+        // Add click handlers for move buttons
+        this.chapterList.querySelectorAll('.btn-move-chapter').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const chapterId = btn.dataset.id;
+                const direction = btn.dataset.direction;
+                this.handleReorderChapter(chapterId, direction);
             });
         });
     }
@@ -167,6 +191,22 @@ class MemDocApp {
         } catch (error) {
             console.error('Error editing chapter:', error);
             alert('Failed to edit chapter: ' + error.message);
+        }
+    }
+
+    async handleReorderChapter(chapterId, direction) {
+        try {
+            await API.reorderChapter(chapterId, direction);
+
+            // Reload chapters list
+            const currentChapter = this.editor.currentChapterId;
+            await this.loadChapters(false);
+            if (currentChapter) {
+                this.selectChapter(currentChapter);
+            }
+        } catch (error) {
+            console.error('Error reordering chapter:', error);
+            alert('Failed to reorder chapter: ' + error.message);
         }
     }
 

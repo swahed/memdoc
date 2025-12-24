@@ -107,6 +107,19 @@ def update_chapter_metadata(chapter_id):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/chapters/<chapter_id>/reorder', methods=['POST'])
+def reorder_chapter(chapter_id):
+    """Reorder a chapter (move up or down)."""
+    try:
+        data = request.json
+        direction = data.get('direction', 'up')  # 'up' or 'down'
+
+        memoir_handler.reorder_chapters(chapter_id, direction)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/chapters/<chapter_id>', methods=['DELETE'])
 def delete_chapter(chapter_id):
     """Delete a chapter."""

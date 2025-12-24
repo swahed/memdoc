@@ -151,6 +151,7 @@ body {
     opacity: 1;
 }
 
+.btn-move-chapter,
 .btn-edit-chapter,
 .btn-delete-chapter {
     background: none;
@@ -165,17 +166,20 @@ body {
     transition: all 0.2s;
 }
 
+.btn-move-chapter:hover,
 .btn-edit-chapter:hover,
 .btn-delete-chapter:hover {
     background: rgba(0, 0, 0, 0.1);
     color: var(--color-text);
 }
 
+.chapter-item.active .btn-move-chapter,
 .chapter-item.active .btn-edit-chapter,
 .chapter-item.active .btn-delete-chapter {
     color: rgba(255, 255, 255, 0.7);
 }
 
+.chapter-item.active .btn-move-chapter:hover,
 .chapter-item.active .btn-edit-chapter:hover,
 .chapter-item.active .btn-delete-chapter:hover {
     background: rgba(255, 255, 255, 0.2);
