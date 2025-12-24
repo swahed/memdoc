@@ -35,13 +35,13 @@ class MemDocApp {
         this.btnClosePrompts.addEventListener('click', () => this.togglePromptsSidebar());
     }
 
-    async loadChapters() {
+    async loadChapters(autoSelect = true) {
         try {
             this.chapters = await API.getChapters();
             this.renderChapterList();
 
-            // Load first chapter if exists
-            if (this.chapters.length > 0) {
+            // Load first chapter if exists (only if autoSelect is true)
+            if (autoSelect && this.chapters.length > 0) {
                 this.selectChapter(this.chapters[0].id);
             }
         } catch (error) {
@@ -93,7 +93,9 @@ class MemDocApp {
 
         try {
             const result = await API.createChapter(title, subtitle);
-            await this.loadChapters();
+            // Reload chapters without auto-selecting
+            await this.loadChapters(false);
+            // Then select the newly created chapter
             this.selectChapter(result.id);
         } catch (error) {
             console.error('Error creating chapter:', error);
