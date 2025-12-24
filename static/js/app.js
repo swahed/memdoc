@@ -59,7 +59,8 @@ class MemDocApp {
         this.chapterList.innerHTML = this.chapters.map(chapter => `
             <div class="chapter-item" data-id="${chapter.id}">
                 <div class="chapter-item-content">
-                    <div class="chapter-item-title">${this.escapeHtml(chapter.file.replace(/^ch\d+-/, '').replace(/\.md$/, ''))}</div>
+                    <div class="chapter-item-title">${this.escapeHtml(chapter.title || 'Untitled Chapter')}</div>
+                    ${chapter.subtitle ? `<div class="chapter-item-subtitle">${this.escapeHtml(chapter.subtitle)}</div>` : ''}
                 </div>
                 <div class="chapter-item-actions">
                     <button class="btn-edit-chapter" data-id="${chapter.id}" title="Edit chapter">
@@ -172,7 +173,7 @@ class MemDocApp {
     async handleDeleteChapter(chapterId) {
         // Get chapter info for confirmation
         const chapter = this.chapters.find(ch => ch.id === chapterId);
-        const chapterName = chapter ? chapter.file.replace(/^ch\d+-/, '').replace(/\.md$/, '') : 'this chapter';
+        const chapterName = chapter ? (chapter.title || 'Untitled Chapter') : 'this chapter';
 
         if (!confirm(`Are you sure you want to delete "${chapterName}"? This cannot be undone.`)) {
             return;

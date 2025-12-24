@@ -219,7 +219,26 @@ class MemoirHandler:
         Get list of all chapters with their metadata.
 
         Returns:
-            List of chapter dictionaries
+            List of chapter dictionaries with title and subtitle
         """
         memoir = self.load_memoir_metadata()
-        return memoir['chapters']
+        chapters_with_titles = []
+
+        for chapter_info in memoir['chapters']:
+            # Load each chapter to get title and subtitle
+            chapter_data = self.load_chapter(chapter_info['id'])
+            if chapter_data:
+                chapters_with_titles.append({
+                    **chapter_info,
+                    'title': chapter_data['frontmatter'].get('title', ''),
+                    'subtitle': chapter_data['frontmatter'].get('subtitle', '')
+                })
+            else:
+                # If chapter file doesn't exist, use defaults
+                chapters_with_titles.append({
+                    **chapter_info,
+                    'title': 'Untitled',
+                    'subtitle': ''
+                })
+
+        return chapters_with_titles
