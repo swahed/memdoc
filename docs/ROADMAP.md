@@ -6,19 +6,20 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 1: MVP - Core Writing Experience
+## Phase 1: MVP - Core Writing Experience ✅ (Mostly Complete)
 **Goal: Get mom writing as soon as possible**
 
 ### Must-Have Features
 - [x] Project structure and dependencies
-- [ ] Basic text editor (markdown-based)
-- [ ] Chapter management (add, edit, delete chapters)
-- [ ] Subtitle support
-- [ ] Basic text formatting (bold, italic, headers)
-- [ ] Auto-save to markdown files in `data/` folder
-- [ ] Simple browser-based UI (iA Writer aesthetic)
+- [x] Basic text editor (markdown-based)
+- [x] Chapter management (create, edit, delete, reorder chapters)
+- [x] Subtitle support
+- [ ] Basic text formatting (bold, italic, headers) - editor supports it, no toolbar yet
+- [x] Auto-save to markdown files in `data/` folder
+- [x] Simple browser-based UI (iA Writer aesthetic)
+- [x] Writing prompts sidebar
 
-**Deliverable:** Mom can write and organize her memoir in chapters, with content automatically saved.
+**Deliverable:** Mom can write and organize her memoir in chapters, with content automatically saved. ✅
 
 **Estimated complexity:** Simple - Core functionality, minimal features
 
@@ -144,5 +145,16 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ## Current Status
 
-**Active Phase:** Phase 1 - MVP
-**Next Up:** Core writing experience
+**Active Phase:** Phase 1 - MVP (Mostly Complete)
+**Completed:**
+- ✅ Project structure and dependencies
+- ✅ Basic Flask/Eel app with iA Writer-inspired UI
+- ✅ Chapter management (create, edit, delete, reorder)
+- ✅ Auto-save to markdown files
+- ✅ Writing prompts sidebar
+- ✅ File persistence in OneDrive-synced folder
+
+**Next Up When Resuming:**
+- **PRIORITY**: Add unit tests and end-to-end tests before continuing development
+- Complete remaining Phase 1 features (markdown formatting)
+- Begin Phase 2 (event tagging, timeline, search)

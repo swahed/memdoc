@@ -115,14 +115,35 @@
 
 ## Common AI Assistant Tasks
 
+### 🚨 PRIORITY WHEN RESUMING WORK
+
+**Before implementing any new features, add unit and end-to-end tests!**
+
+The project is at a good checkpoint with Phase 1 mostly complete. This is the ideal time to add test coverage before continuing development. See `docs/TESTING.md` for detailed guidance.
+
+**Next steps when resuming:**
+1. Set up pytest and playwright
+2. Write unit tests for `core/markdown_handler.py` (most critical)
+3. Write E2E tests for chapter workflow
+4. Aim for 70%+ test coverage before Phase 2
+
+**Why this is critical:**
+- Mom's memoir data is irreplaceable - prevent data loss bugs
+- Markdown file format must stay valid - test persistence
+- Auto-save is complex - test timing and edge cases
+- Prevent regressions as features evolve
+
+---
+
 ### When Helping with This Project
 
 **Always:**
-- Read the relevant docs first (ROADMAP.md, ARCHITECTURE.md, DEVELOPMENT.md)
+- Read the relevant docs first (ROADMAP.md, ARCHITECTURE.md, DEVELOPMENT.md, TESTING.md)
 - Keep solutions simple and readable
 - Consider privacy implications
 - Follow existing code patterns
 - Explain your approach (educational value for Python learner)
+- Write tests for new features
 
 **Never:**
 - Add features not in ROADMAP.md without asking

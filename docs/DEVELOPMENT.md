@@ -190,8 +190,93 @@ Let's say we want to add "word count per chapter":
 
 ## Testing Strategy
 
+### ⚠️ PRIORITY: Add Automated Tests Before Resuming Development
+
+**Action Required:** Before implementing new features, add unit and end-to-end tests to prevent regressions.
+
+### Unit Testing (Backend)
+
+Use `pytest` for Python backend tests:
+
+```bash
+# Install testing dependencies
+pip install pytest pytest-cov
+
+# Run tests
+pytest tests/
+
+# Run with coverage
+pytest --cov=core tests/
+```
+
+**What to test:**
+- `core/markdown_handler.py`: Chapter CRUD operations, metadata parsing
+- `core/timeline.py`: Event extraction and sorting
+- `core/image_handler.py`: Image validation and processing
+- `core/search.py`: Full-text search functionality
+
+**Example test structure:**
+```python
+# tests/test_markdown_handler.py
+import pytest
+from core.markdown_handler import MemoirHandler
+
+def test_create_chapter():
+    handler = MemoirHandler(data_dir="tests/fixtures")
+    chapter_id = handler.create_chapter("Test Chapter", "Test Subtitle")
+    assert chapter_id == "ch001"
+
+def test_load_chapter():
+    handler = MemoirHandler(data_dir="tests/fixtures")
+    chapter = handler.load_chapter("ch001")
+    assert chapter['frontmatter']['title'] == "Test Chapter"
+```
+
+### End-to-End Testing (Frontend)
+
+Use `playwright` for browser-based E2E tests:
+
+```bash
+# Install E2E testing dependencies
+pip install pytest-playwright
+playwright install
+
+# Run E2E tests
+pytest tests/e2e/
+```
+
+**What to test:**
+- Chapter creation, editing, deletion workflow
+- Auto-save functionality
+- Chapter reordering
+- Writing prompts insertion
+- Full user journey: create memoir → add chapters → write content → export
+
+**Example E2E test:**
+```python
+# tests/e2e/test_chapter_workflow.py
+def test_create_and_edit_chapter(page):
+    page.goto("http://localhost:5000")
+
+    # Create new chapter
+    page.click("#btnNewChapter")
+    page.fill('input[type="text"]', "My First Chapter")
+    page.press('input[type="text"]', "Enter")
+
+    # Verify chapter appears
+    assert page.inner_text(".chapter-item-title") == "My First Chapter"
+
+    # Edit content
+    page.fill(".markdown-editor", "This is my memoir content")
+    page.wait_for_timeout(2500)  # Wait for auto-save
+
+    # Verify content saved
+    page.reload()
+    assert "This is my memoir content" in page.inner_text(".markdown-editor")
+```
+
 ### Manual Testing
-Since this is a small personal project, manual testing is sufficient:
+For quick checks during development:
 
 1. **Smoke test**: Can you start the app?
 2. **Feature test**: Does the feature work as expected?
@@ -199,17 +284,14 @@ Since this is a small personal project, manual testing is sufficient:
 4. **Cross-browser** (optional): Test in Chrome, Firefox, Safari
 
 ### Testing Checklist (before committing)
+- [ ] All unit tests pass
+- [ ] All E2E tests pass
 - [ ] App starts without errors
 - [ ] New feature works as expected
 - [ ] Existing features still work
 - [ ] No console errors in browser
 - [ ] Files save correctly
-- [ ] PDF export still works (if applicable)
-
-### Future: Automated Tests
-If the project grows, consider adding:
-- **pytest**: For Python backend tests
-- **Simple JS tests**: For critical frontend logic
+- [ ] Test coverage for new code added
 
 ---
 
