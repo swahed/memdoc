@@ -29,67 +29,8 @@ class Editor {
             this.updateWordCount();
         });
 
-        // Keyboard shortcuts for formatting
-        this.editor.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
-
         // Update word count on load
         this.updateWordCount();
-    }
-
-    handleKeyboardShortcuts(e) {
-        // Check for Ctrl/Cmd key combinations
-        const isMod = e.ctrlKey || e.metaKey;
-
-        if (!isMod) return;
-
-        switch(e.key.toLowerCase()) {
-            case 'b':
-                e.preventDefault();
-                this.formatSelection('**', '**', 'bold text');
-                break;
-            case 'i':
-                e.preventDefault();
-                this.formatSelection('*', '*', 'italic text');
-                break;
-            case 'k':
-                e.preventDefault();
-                this.formatSelection('[', '](https://)', 'link text');
-                break;
-            case 'h':
-                if (e.shiftKey) {
-                    e.preventDefault();
-                    this.formatSelection('## ', '', 'Heading');
-                }
-                break;
-        }
-    }
-
-    formatSelection(prefix, suffix, placeholder = '') {
-        const start = this.editor.selectionStart;
-        const end = this.editor.selectionEnd;
-        const selectedText = this.editor.value.substring(start, end);
-        const text = selectedText || placeholder;
-
-        // Build the formatted text
-        const formattedText = prefix + text + suffix;
-
-        // Replace the selection
-        this.editor.value = this.editor.value.substring(0, start) +
-                           formattedText +
-                           this.editor.value.substring(end);
-
-        // Set cursor position
-        if (selectedText) {
-            // If there was a selection, select the formatted text
-            this.editor.setSelectionRange(start, start + formattedText.length);
-        } else {
-            // If no selection, position cursor inside the formatting
-            const cursorPos = start + prefix.length + text.length;
-            this.editor.setSelectionRange(cursorPos, cursorPos - suffix.length);
-        }
-
-        this.editor.focus();
-        this.handleInput();
     }
 
     handleInput() {
