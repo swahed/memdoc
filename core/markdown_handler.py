@@ -164,10 +164,8 @@ class MemoirHandler:
             'subtitle': subtitle,
             'events': []
         }
-        content = f"# {title}\n"
-        if subtitle:
-            content += f"## {subtitle}\n"
-        content += "\nStart writing here..."
+        # Start with empty content - title and subtitle are in dedicated fields
+        content = ""
 
         self.save_chapter(chapter_id, frontmatter, content)
 
