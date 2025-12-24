@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemDoc - Memoir Writing</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Sidebar - Chapter Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1 class="app-title">MemDoc</h1>
+                <button class="btn-new-chapter" id="btnNewChapter">+ New Chapter</button>
+            </div>
+
+            <nav class="chapter-list" id="chapterList">
+                <p class="empty-state">No chapters yet. Create your first chapter!</p>
+            </nav>
+        </aside>
+
+        <!-- Main Editor Area -->
+        <main class="editor-container">
+            <!-- Editor Header -->
+            <header class="editor-header">
+                <input
+                    type="text"
+                    class="chapter-title-input"
+                    id="chapterTitle"
+                    placeholder="Chapter Title"
+                    disabled
+                />
+                <input
+                    type="text"
+                    class="chapter-subtitle-input"
+                    id="chapterSubtitle"
+                    placeholder="Subtitle (optional)"
+                    disabled
+                />
+            </header>
+
+            <!-- Editor Content -->
+            <div class="editor-content">
+                <textarea
+                    class="markdown-editor"
+                    id="editor"
+                    placeholder="Start writing your memoir...
+
+You can use basic formatting:
+**bold** for bold text
+*italic* for italic text
+# Heading for section headers"
+                    disabled
+                ></textarea>
+            </div>
+
+            <!-- Status Bar -->
+            <footer class="status-bar">
+                <span class="status-indicator" id="saveStatus">Ready</span>
+                <span class="word-count" id="wordCount">0 words</span>
+            </footer>
+        </main>
+
+        <!-- Writing Prompts Sidebar -->
+        <aside class="prompts-sidebar" id="promptsSidebar">
+            <div class="prompts-header">
+                <h3>Writing Prompts</h3>
+                <button class="btn-close-prompts" id="btnClosePrompts">&times;</button>
+            </div>
+            <div class="prompts-content" id="promptsContent">
+                <p class="loading">Loading prompts...</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Toggle Prompts Button (Fixed) -->
+    <button class="btn-toggle-prompts" id="btnTogglePrompts" title="Toggle writing prompts">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+            <path d="M3 10h14M3 5h14M3 15h14" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </button>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/editor.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
