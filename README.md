@@ -53,9 +53,12 @@ pip install -r requirements.txt
 **✅ Available Now:**
 1. **Create chapters**: Click "+ New Chapter" to add a new chapter to your memoir
 2. **Write freely**: Clean, distraction-free editor with auto-save (saves 2 seconds after you stop typing)
-3. **Organize**: Navigate between chapters using the sidebar
-4. **Get inspired**: Click the prompts button (bottom-right) for 40+ memoir writing prompts
-5. **Track progress**: Word count displayed in the status bar
+3. **Markdown formatting**: Toolbar with bold, italic, and heading buttons (Ctrl+B, Ctrl+I shortcuts)
+4. **Remove formatting**: Strip markdown formatting from selected text with one click
+5. **Organize**: Navigate between chapters using the sidebar, reorder with up/down arrows
+6. **Safe delete**: Deleted chapters are preserved in `data/chapters/deleted/` folder for recovery
+7. **Get inspired**: Click the prompts button (bottom-right) for 40+ memoir writing prompts
+8. **Track progress**: Word count displayed in the status bar and per-chapter in sidebar
 
 **🚧 Coming Soon:**
 - Event tagging and timeline generation
@@ -66,6 +69,13 @@ pip install -r requirements.txt
 ## File Storage
 
 Your memoir is saved as markdown files in the `data/` folder. Keep this folder synced with OneDrive (or any cloud storage) for automatic backup.
+
+### Deleted Chapters
+
+When you delete a chapter, it's not permanently removed. Instead, it's moved to `data/chapters/deleted/` with a timestamp added to the filename. This means:
+- You can always recover deleted chapters if needed
+- No memoir content is ever truly lost
+- Files are organized and don't clutter the main chapters folder
 
 ## Support
 

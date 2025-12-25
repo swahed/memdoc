@@ -100,6 +100,30 @@ class TestChapterCreation:
         assert "my-first-chapter" in chapter_info['file']
         assert chapter_info['file'].endswith(".md")
 
+    def test_create_chapter_id_uses_max_plus_one(self, handler):
+        """Test that chapter IDs use max existing ID + 1, not count."""
+        # Create chapters ch001, ch002, ch003
+        ch1 = handler.create_chapter("Chapter 1", "")
+        ch2 = handler.create_chapter("Chapter 2", "")
+        ch3 = handler.create_chapter("Chapter 3", "")
+
+        assert ch1 == "ch001"
+        assert ch2 == "ch002"
+        assert ch3 == "ch003"
+
+        # Delete ch002 (creates gap)
+        handler.delete_chapter(ch2)
+
+        # Create new chapter - should be ch004 (max + 1), not ch003 (count + 1)
+        ch4 = handler.create_chapter("Chapter 4", "")
+        assert ch4 == "ch004"
+
+        # Verify no duplicate IDs
+        metadata = handler.load_memoir_metadata()
+        chapter_ids = [ch['id'] for ch in metadata['chapters']]
+        assert len(chapter_ids) == len(set(chapter_ids))  # No duplicates
+        assert ch4 in chapter_ids
+
 
 class TestChapterLoading:
     """Tests for chapter loading."""

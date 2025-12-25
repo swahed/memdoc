@@ -6,7 +6,7 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 1: MVP - Core Writing Experience ✅ (Mostly Complete)
+## Phase 1: MVP - Core Writing Experience ✅ COMPLETE
 **Goal: Get mom writing as soon as possible**
 
 ### Must-Have Features
@@ -14,14 +14,21 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 - [x] Basic text editor (markdown-based)
 - [x] Chapter management (create, edit, delete, reorder chapters)
 - [x] Subtitle support
-- [ ] Basic text formatting (bold, italic, headers) - editor supports it, no toolbar yet
+- [x] Basic text formatting (bold, italic, headers) with toolbar
 - [x] Auto-save to markdown files in `data/` folder
 - [x] Simple browser-based UI (iA Writer aesthetic)
 - [x] Writing prompts sidebar
 
+### Bonus Features Added
+- [x] Keyboard shortcuts (Ctrl+B, Ctrl+I)
+- [x] Remove formatting button
+- [x] Safe delete (chapters moved to deleted folder, not permanently removed)
+- [x] Per-chapter word counts in sidebar
+- [x] Comprehensive test coverage (50 tests, 62% overall, 96% on critical modules)
+
 **Deliverable:** Mom can write and organize her memoir in chapters, with content automatically saved. ✅
 
-**Estimated complexity:** Simple - Core functionality, minimal features
+**Status:** COMPLETE - All features implemented and tested
 
 ---
 

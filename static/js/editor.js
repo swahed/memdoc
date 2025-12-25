@@ -21,6 +21,7 @@ class Editor {
         // Get formatting toolbar buttons
         this.btnBold = document.getElementById('btnBold');
         this.btnItalic = document.getElementById('btnItalic');
+        this.btnClearFormat = document.getElementById('btnClearFormat');
         this.btnH1 = document.getElementById('btnH1');
         this.btnH2 = document.getElementById('btnH2');
         this.btnH3 = document.getElementById('btnH3');
@@ -40,6 +41,7 @@ class Editor {
         // Formatting toolbar buttons
         this.btnBold.addEventListener('click', () => this.formatBold());
         this.btnItalic.addEventListener('click', () => this.formatItalic());
+        this.btnClearFormat.addEventListener('click', () => this.clearFormatting());
         this.btnH1.addEventListener('click', () => this.formatHeading(1));
         this.btnH2.addEventListener('click', () => this.formatHeading(2));
         this.btnH3.addEventListener('click', () => this.formatHeading(3));
@@ -98,6 +100,7 @@ class Editor {
             // Enable formatting toolbar
             this.btnBold.disabled = false;
             this.btnItalic.disabled = false;
+            this.btnClearFormat.disabled = false;
             this.btnH1.disabled = false;
             this.btnH2.disabled = false;
             this.btnH3.disabled = false;
@@ -157,6 +160,7 @@ class Editor {
         // Disable formatting toolbar
         this.btnBold.disabled = true;
         this.btnItalic.disabled = true;
+        this.btnClearFormat.disabled = true;
         this.btnH1.disabled = true;
         this.btnH2.disabled = true;
         this.btnH3.disabled = true;
@@ -220,6 +224,48 @@ class Editor {
 
     formatItalic() {
         this.wrapSelection('*', '*', 'italic text');
+    }
+
+    clearFormatting() {
+        const start = this.editor.selectionStart;
+        const end = this.editor.selectionEnd;
+        const currentValue = this.editor.value;
+        const selectedText = currentValue.substring(start, end);
+
+        if (!selectedText) {
+            // No selection - do nothing or show a message
+            return;
+        }
+
+        // Remove markdown formatting
+        let cleanText = selectedText;
+
+        // Remove bold (**text** or __text__)
+        cleanText = cleanText.replace(/\*\*(.+?)\*\*/g, '$1');
+        cleanText = cleanText.replace(/__(.+?)__/g, '$1');
+
+        // Remove italic (*text* or _text_)
+        cleanText = cleanText.replace(/\*(.+?)\*/g, '$1');
+        cleanText = cleanText.replace(/_(.+?)_/g, '$1');
+
+        // Remove headings (# at start of line)
+        cleanText = cleanText.replace(/^#{1,6}\s+/gm, '');
+
+        // Remove strikethrough (~~text~~)
+        cleanText = cleanText.replace(/~~(.+?)~~/g, '$1');
+
+        // Remove inline code (`text`)
+        cleanText = cleanText.replace(/`(.+?)`/g, '$1');
+
+        // Replace selection with cleaned text
+        this.editor.value = currentValue.substring(0, start) + cleanText + currentValue.substring(end);
+
+        // Restore selection
+        this.editor.setSelectionRange(start, start + cleanText.length);
+        this.editor.focus();
+
+        // Trigger auto-save
+        this.handleInput();
     }
 
     formatHeading(level) {
