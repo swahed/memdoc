@@ -71,10 +71,31 @@ pip install -r requirements.txt
    - **PDF export**: Download chapter as print-ready PDF (requires GTK libraries on Windows)
    - **Professional formatting**: Georgia serif font, proper spacing, page breaks
    - **Image support**: All images included with correct positioning
+   - **Smart error handling**: If PDF libraries aren't installed, you'll get clear instructions on how to install them, plus a workaround using your browser's Print-to-PDF feature
 
 **🚧 Coming Soon:**
 - Event tagging and timeline generation
 - Desktop application mode
+
+## PDF Export Dependencies
+
+PDF export requires system libraries that may not be installed by default:
+
+**Windows:**
+- Download and install [GTK3 Runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases)
+- Restart the application after installation
+
+**macOS:**
+```bash
+brew install pango
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt-get install libpango-1.0-0 libpangoft2-1.0-0
+```
+
+**Don't want to install dependencies?** No problem! Use the Preview button to view your chapter in the browser, then use your browser's Print-to-PDF feature (Ctrl+P on Windows, ⌘+P on Mac). The app will show you this workaround if the libraries aren't installed.
 
 ## File Storage
 

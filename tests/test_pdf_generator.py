@@ -6,7 +6,12 @@ Tests markdown to HTML conversion and PDF generation.
 
 import pytest
 from pathlib import Path
-from core.pdf_generator import markdown_to_html, generate_chapter_preview_html, generate_chapter_pdf
+from core.pdf_generator import (
+    markdown_to_html,
+    generate_chapter_preview_html,
+    generate_chapter_pdf,
+    check_weasyprint_available
+)
 
 # Check if WeasyPrint can import properly (needs GTK libraries on Windows)
 try:
@@ -14,6 +19,63 @@ try:
     WEASYPRINT_AVAILABLE = True
 except (OSError, ImportError):
     WEASYPRINT_AVAILABLE = False
+
+
+class TestPDFDependencyCheck:
+    """Tests for PDF dependency checking."""
+
+    def test_check_weasyprint_returns_tuple(self):
+        """Test that check_weasyprint_available returns a tuple."""
+        is_available, message = check_weasyprint_available()
+        assert isinstance(is_available, bool)
+        assert isinstance(message, str)
+
+    def test_check_weasyprint_availability(self):
+        """Test WeasyPrint availability matches our detection."""
+        is_available, message = check_weasyprint_available()
+        assert is_available == WEASYPRINT_AVAILABLE
+
+    def test_check_weasyprint_error_message_when_unavailable(self):
+        """Test that error message is provided when WeasyPrint is unavailable."""
+        is_available, message = check_weasyprint_available()
+        if not is_available:
+            # Should have helpful error message
+            assert len(message) > 0
+            assert "PDF export" in message
+            # Should mention alternative
+            assert "Preview" in message or "browser" in message
+        else:
+            # Should have empty message when available
+            assert message == ""
+
+    def test_check_weasyprint_includes_platform_instructions(self):
+        """Test that error message includes platform-specific instructions."""
+        is_available, message = check_weasyprint_available()
+        if not is_available:
+            import platform
+            system = platform.system()
+            if system == "Windows":
+                assert "GTK" in message or "gtk" in message.lower()
+            elif system == "Darwin":
+                assert "brew" in message or "Homebrew" in message
+            # Message should have installation steps
+            assert "1." in message and "2." in message
+
+    def test_generate_pdf_raises_on_missing_dependencies(self, handler, tmp_path):
+        """Test that generate_chapter_pdf raises RuntimeError when dependencies missing."""
+        if not WEASYPRINT_AVAILABLE:
+            chapter_id = handler.create_chapter("Test", "")
+            frontmatter = {'id': chapter_id, 'title': 'Test', 'subtitle': '', 'events': []}
+            handler.save_chapter(chapter_id, frontmatter, "Content")
+
+            pdf_path = tmp_path / "test.pdf"
+            with pytest.raises(RuntimeError) as exc_info:
+                generate_chapter_pdf(handler, chapter_id, pdf_path)
+
+            # Error message should be helpful
+            error_msg = str(exc_info.value)
+            assert "PDF export" in error_msg
+            assert len(error_msg) > 50  # Should be a detailed message
 
 
 class TestMarkdownToHTML:
