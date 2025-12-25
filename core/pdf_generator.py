@@ -129,6 +129,34 @@ def markdown_to_html(markdown_content: str, chapter_title: str = "") -> str:
         ]
     )
 
+    # Fix image paths for web preview (convert ../images/ to /api/images/)
+    html_content = html_content.replace('src="../images/', 'src="/api/images/')
+
+    # Process kramdown-style class attributes {: .class1 .class2}
+    # Pattern: <img...><br />\n{: .class1 .class2}<br />
+    import re
+
+    # Find and apply classes to images
+    pattern = r'(<img[^>]*>)(<br\s*/?>)?\s*\{:\s*([^}]+)\}\s*(<br\s*/?>)?'
+    def add_classes_to_img(match):
+        img_tag = match.group(1)
+        classes = match.group(3).strip()
+        # Extract class names (remove dots)
+        class_names = ' '.join([c.strip('.') for c in classes.split()])
+        # Add class attribute to img tag
+        if 'class=' in img_tag:
+            # Append to existing classes
+            img_tag = img_tag.replace('class="', f'class="{class_names} ')
+        else:
+            # Add new class attribute before closing / or >
+            if img_tag.endswith('/>'):
+                img_tag = img_tag[:-2] + f' class="{class_names}" />'
+            elif img_tag.endswith('>'):
+                img_tag = img_tag[:-1] + f' class="{class_names}">'
+        return img_tag
+
+    html_content = re.sub(pattern, add_classes_to_img, html_content)
+
     # Generate complete HTML document with print-optimized CSS
     html_doc = f"""<!DOCTYPE html>
 <html lang="en">
