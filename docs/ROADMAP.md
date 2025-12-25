@@ -89,20 +89,27 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 5: Export & Publishing
+## Phase 5: Export & Publishing (PARTIALLY COMPLETE)
 **Goal: Professional-quality output**
 
-### Features
-- [ ] HTML preview in browser
+### Chapter-Level Export (✅ Complete)
+- [x] HTML preview in browser
+- [x] PDF export with print-quality settings
+- [x] Print-optimized styling (page breaks, margins, typography)
+- [x] Professional fonts (Georgia serif, Helvetica headings)
+- [x] Image support in export (all positions and sizes)
+
+### Full Memoir Export (Future)
 - [ ] Cover page generation
 - [ ] Automatic table of contents
-- [ ] Page numbering
-- [ ] PDF export with print-quality settings
-- [ ] Print-optimized styling (page breaks, margins, typography)
+- [ ] Page numbering across chapters
+- [ ] Export entire memoir as one PDF
 
-**Deliverable:** Print-ready PDF memoir.
+**Deliverable:** Chapter preview and export working. ✅
 
-**Estimated complexity:** Complex - PDF generation, print styling
+**Status:** Chapter-level preview/export complete. Full memoir export deferred.
+
+**Note:** PDF export requires GTK libraries on Windows. Preview in browser works on all platforms.
 
 ---
 

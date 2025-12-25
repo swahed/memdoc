@@ -6,9 +6,10 @@ Main application entry point
 import sys
 import json
 from pathlib import Path
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory, send_file
 from core.markdown_handler import MemoirHandler
 from core.image_handler import save_uploaded_image, check_image_resolution
+from core.pdf_generator import generate_chapter_preview_html, generate_chapter_pdf
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
@@ -261,6 +262,56 @@ def delete_image(filename):
 
         return jsonify({'status': 'success', 'message': 'Image deleted'})
     except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/chapters/<chapter_id>/preview', methods=['GET'])
+def preview_chapter(chapter_id):
+    """Generate HTML preview of a chapter."""
+    try:
+        html = generate_chapter_preview_html(memoir_handler, chapter_id)
+        return html, 200, {'Content-Type': 'text/html; charset=utf-8'}
+    except ValueError as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 404
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/chapters/<chapter_id>/export/pdf', methods=['GET'])
+def export_chapter_pdf(chapter_id):
+    """Generate and download PDF of a chapter."""
+    import tempfile
+    import os
+
+    temp_pdf = None
+    try:
+        # Generate PDF in temp file
+        temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        temp_pdf.close()
+
+        generate_chapter_pdf(memoir_handler, chapter_id, Path(temp_pdf.name))
+
+        # Get chapter title for filename
+        chapter = memoir_handler.load_chapter(chapter_id)
+        title = chapter['frontmatter'].get('title', 'chapter') if chapter else 'chapter'
+        # Sanitize filename
+        safe_title = ''.join(c if c.isalnum() or c in ('-', '_') else '-' for c in title.lower())
+        safe_title = safe_title[:30]  # Limit length
+
+        # Send file
+        return send_file(
+            temp_pdf.name,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'{chapter_id}-{safe_title}.pdf'
+        )
+    except ValueError as e:
+        if temp_pdf and os.path.exists(temp_pdf.name):
+            os.unlink(temp_pdf.name)
+        return jsonify({'status': 'error', 'message': str(e)}), 404
+    except Exception as e:
+        if temp_pdf and os.path.exists(temp_pdf.name):
+            os.unlink(temp_pdf.name)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 

@@ -23,6 +23,7 @@ class MemDocApp {
     async init() {
         this.setupEventListeners();
         this.setupEditorCallbacks();
+        this.setupPreviewExport();
         await this.loadChapters();
         await this.loadPrompts();
     }
@@ -315,6 +316,72 @@ class MemDocApp {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // === Preview & Export Methods ===
+
+    setupPreviewExport() {
+        // Get preview modal elements
+        this.previewModal = document.getElementById('previewModal');
+        this.previewFrame = document.getElementById('previewFrame');
+        this.btnPreview = document.getElementById('btnPreview');
+        this.btnExportPDF = document.getElementById('btnExportPDF');
+        this.btnClosePreview = document.getElementById('btnClosePreview');
+        this.btnClosePreviewBottom = document.getElementById('btnClosePreviewBottom');
+        this.btnExportFromPreview = document.getElementById('btnExportFromPreview');
+
+        // Add event listeners
+        this.btnPreview.addEventListener('click', () => this.showPreview());
+        this.btnExportPDF.addEventListener('click', () => this.exportPDF());
+        this.btnClosePreview.addEventListener('click', () => this.closePreview());
+        this.btnClosePreviewBottom.addEventListener('click', () => this.closePreview());
+        this.btnExportFromPreview.addEventListener('click', () => {
+            this.closePreview();
+            this.exportPDF();
+        });
+    }
+
+    async showPreview() {
+        if (!this.editor.currentChapterId) {
+            return;
+        }
+
+        try {
+            // Show modal
+            this.previewModal.classList.add('visible');
+
+            // Load preview in iframe
+            this.previewFrame.src = `/api/chapters/${this.editor.currentChapterId}/preview`;
+        } catch (error) {
+            console.error('Error showing preview:', error);
+            alert('Failed to show preview: ' + error.message);
+            this.closePreview();
+        }
+    }
+
+    closePreview() {
+        this.previewModal.classList.remove('visible');
+        // Clear iframe src to stop loading
+        this.previewFrame.src = '';
+    }
+
+    async exportPDF() {
+        if (!this.editor.currentChapterId) {
+            return;
+        }
+
+        try {
+            // Trigger download
+            window.location.href = `/api/chapters/${this.editor.currentChapterId}/export/pdf`;
+
+            // Show success message
+            setTimeout(() => {
+                alert('PDF exported! Check your downloads folder.');
+            }, 500);
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            alert('Failed to export PDF: ' + error.message);
+        }
     }
 }
 

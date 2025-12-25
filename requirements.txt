@@ -13,7 +13,7 @@ markdown2==2.4.12
 # Eel==0.16.0
 
 # PDF Generation (Phase 5)
-# WeasyPrint==60.2
+WeasyPrint==67.0
 
 # Image Processing (Phase 3)
 Pillow==12.0.0

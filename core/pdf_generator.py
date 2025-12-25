@@ -49,15 +49,291 @@ def generate_toc_html(chapters: List[Dict]) -> str:
     return ""
 
 
-def markdown_to_html(markdown_content: str) -> str:
+def markdown_to_html(markdown_content: str, chapter_title: str = "") -> str:
     """
-    Convert markdown content to HTML.
+    Convert markdown content to styled HTML for preview/PDF.
 
     Args:
         markdown_content: Markdown string
+        chapter_title: Optional chapter title for H1
 
     Returns:
-        HTML string
+        Complete HTML document with styling
     """
-    # TODO: Implement markdown to HTML conversion
-    return ""
+    import markdown2
+
+    # Convert markdown to HTML with extras
+    html_content = markdown2.markdown(
+        markdown_content,
+        extras=[
+            'fenced-code-blocks',
+            'tables',
+            'break-on-newline',
+            'cuddled-lists',
+            'footnotes'
+        ]
+    )
+
+    # Generate complete HTML document with print-optimized CSS
+    html_doc = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{chapter_title if chapter_title else 'Chapter'}</title>
+    <style>
+        /* Print-optimized typography */
+        @page {{
+            size: A4;
+            margin: 2.5cm 2cm;
+        }}
+
+        body {{
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.8;
+            color: #1a1a1a;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 2rem;
+        }}
+
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 {{
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            page-break-after: avoid;
+        }}
+
+        h1 {{
+            font-size: 2.2em;
+            margin-top: 0;
+            border-bottom: 2px solid #333;
+            padding-bottom: 0.3em;
+        }}
+
+        h2 {{
+            font-size: 1.6em;
+        }}
+
+        h3 {{
+            font-size: 1.3em;
+        }}
+
+        /* Paragraphs */
+        p {{
+            margin: 0 0 1em 0;
+            text-align: justify;
+            orphans: 3;
+            widows: 3;
+        }}
+
+        /* Images */
+        img {{
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1.5em auto;
+            page-break-inside: avoid;
+        }}
+
+        .img-left {{
+            float: left;
+            margin: 0.5em 1.5em 1em 0;
+            max-width: 45%;
+        }}
+
+        .img-right {{
+            float: right;
+            margin: 0.5em 0 1em 1.5em;
+            max-width: 45%;
+        }}
+
+        .img-center {{
+            display: block;
+            margin: 1.5em auto;
+        }}
+
+        .img-full {{
+            display: block;
+            margin: 1.5em 0;
+            max-width: 100%;
+        }}
+
+        .img-small {{
+            max-width: 300px;
+        }}
+
+        .img-medium {{
+            max-width: 500px;
+        }}
+
+        .img-large {{
+            max-width: 700px;
+        }}
+
+        /* Image captions (italic text after images) */
+        img + p em, img + p i {{
+            display: block;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: -0.5em;
+            margin-bottom: 1.5em;
+        }}
+
+        /* Lists */
+        ul, ol {{
+            margin: 0 0 1em 0;
+            padding-left: 2em;
+        }}
+
+        li {{
+            margin-bottom: 0.3em;
+        }}
+
+        /* Blockquotes */
+        blockquote {{
+            margin: 1.5em 2em;
+            padding: 0.5em 1em;
+            border-left: 4px solid #ccc;
+            font-style: italic;
+            color: #555;
+        }}
+
+        /* Code */
+        code {{
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }}
+
+        pre {{
+            background: #f5f5f5;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+            page-break-inside: avoid;
+        }}
+
+        pre code {{
+            background: none;
+            padding: 0;
+        }}
+
+        /* Tables */
+        table {{
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+            page-break-inside: avoid;
+        }}
+
+        th, td {{
+            border: 1px solid #ddd;
+            padding: 0.5em;
+            text-align: left;
+        }}
+
+        th {{
+            background: #f5f5f5;
+            font-weight: 600;
+        }}
+
+        /* Links - show URL in print */
+        a {{
+            color: #0066cc;
+            text-decoration: none;
+        }}
+
+        @media print {{
+            a[href]:after {{
+                content: " (" attr(href) ")";
+                font-size: 0.8em;
+                color: #666;
+            }}
+        }}
+
+        /* Horizontal rules */
+        hr {{
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 2em 0;
+        }}
+
+        /* Strong and emphasis */
+        strong, b {{
+            font-weight: 700;
+        }}
+
+        em, i {{
+            font-style: italic;
+        }}
+    </style>
+</head>
+<body>
+    {'<h1>' + chapter_title + '</h1>' if chapter_title else ''}
+    {html_content}
+</body>
+</html>"""
+
+    return html_doc
+
+
+def generate_chapter_preview_html(memoir_handler, chapter_id: str) -> str:
+    """
+    Generate HTML preview for a single chapter.
+
+    Args:
+        memoir_handler: MemoirHandler instance
+        chapter_id: Chapter ID to preview
+
+    Returns:
+        HTML string for browser preview
+    """
+    chapter = memoir_handler.load_chapter(chapter_id)
+    if not chapter:
+        raise ValueError(f"Chapter {chapter_id} not found")
+
+    title = chapter['frontmatter'].get('title', 'Untitled')
+    subtitle = chapter['frontmatter'].get('subtitle', '')
+    content = chapter['content']
+
+    # Add subtitle to title if present
+    full_title = f"{title}: {subtitle}" if subtitle else title
+
+    return markdown_to_html(content, full_title)
+
+
+def generate_chapter_pdf(memoir_handler, chapter_id: str, output_path: Path) -> bool:
+    """
+    Generate PDF for a single chapter.
+
+    Args:
+        memoir_handler: MemoirHandler instance
+        chapter_id: Chapter ID to export
+        output_path: Path where PDF should be saved
+
+    Returns:
+        True if successful, raises exception otherwise
+    """
+    from weasyprint import HTML, CSS
+
+    # Generate HTML content
+    html_content = generate_chapter_preview_html(memoir_handler, chapter_id)
+
+    # Convert to PDF with WeasyPrint
+    HTML(string=html_content, base_url=str(memoir_handler.data_dir)).write_pdf(
+        output_path,
+        stylesheets=[CSS(string='''
+            @page {
+                size: A4;
+                margin: 2.5cm 2cm;
+            }
+        ''')]
+    )
+
+    return True

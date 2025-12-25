@@ -66,10 +66,14 @@ pip install -r requirements.txt
    - **Size control**: Small (300px), medium (500px), large (700px), or full width
    - **Add captions**: Describe your photos with optional captions
    - **Helpful guidance**: Tips for best results with print-quality images
+10. **Preview & Export**: View and export your chapters
+   - **Live preview**: See formatted chapter in browser with all styling
+   - **PDF export**: Download chapter as print-ready PDF (requires GTK libraries on Windows)
+   - **Professional formatting**: Georgia serif font, proper spacing, page breaks
+   - **Image support**: All images included with correct positioning
 
 **🚧 Coming Soon:**
 - Event tagging and timeline generation
-- PDF export with professional formatting
 - Desktop application mode
 
 ## File Storage

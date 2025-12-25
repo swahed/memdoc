@@ -69,6 +69,17 @@
                         <path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm11 1H3v6.5l2.5-2.5 1.5 1.5 3-3 3 3V4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
                     </svg>
                 </button>
+                <div class="toolbar-separator"></div>
+                <button class="format-btn" id="btnPreview" title="Preview chapter" disabled>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 2c3.5 0 6.5 2.5 8 6-1.5 3.5-4.5 6-8 6s-6.5-2.5-8-6c1.5-3.5 4.5-6 8-6zm0 10c2 0 3.5-1.5 3.5-3.5S10 5 8 5 4.5 6.5 4.5 8.5 6 12 8 12zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/>
+                    </svg>
+                </button>
+                <button class="format-btn" id="btnExportPDF" title="Export to PDF" disabled>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 10l-4-4h3V2h2v4h3l-4 4zm6 2v2H2v-2h1v1h10v-1h1z"/>
+                    </svg>
+                </button>
             </div>
 
             <!-- Editor Content -->
@@ -196,6 +207,25 @@ You can use basic formatting:
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancelUpload">Cancel</button>
                 <button class="btn-primary" id="btnInsertImageToEditor" disabled>Insert Image</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal-content preview-modal-content">
+            <div class="modal-header">
+                <h3>Chapter Preview</h3>
+                <button class="btn-close-modal" id="btnClosePreview">&times;</button>
+            </div>
+
+            <div class="modal-body preview-body">
+                <iframe id="previewFrame" sandbox="allow-same-origin"></iframe>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btnClosePreviewBottom">Close</button>
+                <button class="btn-primary" id="btnExportFromPreview">Export to PDF</button>
             </div>
         </div>
     </div>
