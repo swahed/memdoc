@@ -371,17 +371,101 @@ class MemDocApp {
         }
 
         try {
-            // Trigger download
-            window.location.href = `/api/chapters/${this.editor.currentChapterId}/export/pdf`;
+            // Fetch PDF file
+            const response = await fetch(`/api/chapters/${this.editor.currentChapterId}/export/pdf`);
+
+            // Check if response is an error (JSON) or success (PDF file)
+            const contentType = response.headers.get('content-type');
+
+            if (!response.ok) {
+                // Error response - check if it's a dependency error
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    if (errorData.type === 'dependency_error') {
+                        // Show helpful modal with installation instructions
+                        this.showPDFDependencyError(errorData.message);
+                    } else {
+                        alert('Failed to export PDF: ' + errorData.message);
+                    }
+                } else {
+                    alert('Failed to export PDF. Please try again.');
+                }
+                return;
+            }
+
+            // Success - download the PDF
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            // Get filename from Content-Disposition header if available
+            const disposition = response.headers.get('Content-Disposition');
+            let filename = 'chapter.pdf';
+            if (disposition && disposition.includes('filename=')) {
+                filename = disposition.split('filename=')[1].replace(/"/g, '');
+            }
+
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
 
             // Show success message
-            setTimeout(() => {
-                alert('PDF exported! Check your downloads folder.');
-            }, 500);
+            alert('PDF exported successfully! Check your downloads folder.');
         } catch (error) {
             console.error('Error exporting PDF:', error);
             alert('Failed to export PDF: ' + error.message);
         }
+    }
+
+    showPDFDependencyError(message) {
+        // Create modal overlay if it doesn't exist
+        let modal = document.getElementById('pdfErrorModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'pdfErrorModal';
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3>PDF Export Not Available</h3>
+                        <button class="btn-close-modal" id="btnClosePdfError">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <pre style="white-space: pre-wrap; font-family: inherit; background: #f5f5f5; padding: 1rem; border-radius: 4px; line-height: 1.6;">${this.escapeHtml(message)}</pre>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" id="btnOkPdfError">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Add event listeners
+            modal.querySelector('#btnClosePdfError').addEventListener('click', () => {
+                modal.classList.remove('visible');
+            });
+            modal.querySelector('#btnOkPdfError').addEventListener('click', () => {
+                modal.classList.remove('visible');
+            });
+            // Close on overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('visible');
+                }
+            });
+        } else {
+            // Update message if modal already exists
+            const messageEl = modal.querySelector('pre');
+            if (messageEl) {
+                messageEl.textContent = message;
+            }
+        }
+
+        // Show modal
+        modal.classList.add('visible');
     }
 }
 

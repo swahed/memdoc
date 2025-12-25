@@ -277,6 +277,25 @@ def preview_chapter(chapter_id):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/pdf/check', methods=['GET'])
+def check_pdf_availability():
+    """Check if PDF export is available (WeasyPrint dependencies installed)."""
+    try:
+        from core.pdf_generator import check_weasyprint_available
+        is_available, error_message = check_weasyprint_available()
+        return jsonify({
+            'status': 'success',
+            'available': is_available,
+            'message': error_message if not is_available else ''
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'available': False,
+            'message': f'Error checking PDF availability: {str(e)}'
+        }), 500
+
+
 @app.route('/api/chapters/<chapter_id>/export/pdf', methods=['GET'])
 def export_chapter_pdf(chapter_id):
     """Generate and download PDF of a chapter."""
@@ -309,6 +328,11 @@ def export_chapter_pdf(chapter_id):
         if temp_pdf and os.path.exists(temp_pdf.name):
             os.unlink(temp_pdf.name)
         return jsonify({'status': 'error', 'message': str(e)}), 404
+    except RuntimeError as e:
+        # PDF dependencies not available - return helpful error message
+        if temp_pdf and os.path.exists(temp_pdf.name):
+            os.unlink(temp_pdf.name)
+        return jsonify({'status': 'error', 'message': str(e), 'type': 'dependency_error'}), 500
     except Exception as e:
         if temp_pdf and os.path.exists(temp_pdf.name):
             os.unlink(temp_pdf.name)

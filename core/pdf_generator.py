@@ -5,7 +5,62 @@ Converts memoir to print-quality PDF with cover, TOC, and page numbers.
 """
 
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
+
+
+def check_weasyprint_available() -> Tuple[bool, str]:
+    """
+    Check if WeasyPrint is available and can generate PDFs.
+
+    Returns:
+        Tuple of (is_available, error_message)
+        If available, error_message will be empty string.
+        If not available, error_message contains user-friendly instructions.
+    """
+    try:
+        from weasyprint import HTML, CSS
+        # Try a simple operation to ensure dependencies are working
+        test_html = HTML(string='<html><body>Test</body></html>')
+        return True, ""
+    except (ImportError, OSError) as e:
+        error_msg = str(e)
+
+        # Provide platform-specific installation instructions
+        import platform
+        system = platform.system()
+
+        if system == "Windows":
+            instructions = """PDF export requires GTK libraries which are not installed.
+
+To enable PDF export on Windows:
+1. Download GTK3 Runtime: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
+2. Run the installer and follow the setup wizard
+3. Restart the MemDoc application
+
+Alternative: Use the Preview button to view your chapter in the browser, then use your browser's Print to PDF feature (Ctrl+P)."""
+        elif system == "Darwin":  # macOS
+            instructions = """PDF export requires system libraries which are not installed.
+
+To enable PDF export on macOS:
+1. Install Homebrew if you haven't already: https://brew.sh
+2. Run: brew install pango
+3. Restart the MemDoc application
+
+Alternative: Use the Preview button to view your chapter in the browser, then use your browser's Print to PDF feature (⌘+P)."""
+        else:  # Linux
+            instructions = """PDF export requires system libraries which may not be installed.
+
+To enable PDF export on Linux:
+1. Install required packages:
+   - Ubuntu/Debian: sudo apt-get install libpango-1.0-0 libpangoft2-1.0-0
+   - Fedora: sudo dnf install pango
+2. Restart the MemDoc application
+
+Alternative: Use the Preview button to view your chapter in the browser, then use your browser's Print to PDF feature."""
+
+        return False, instructions
+    except Exception as e:
+        return False, f"PDF export is unavailable: {str(e)}"
 
 
 def generate_pdf(memoir_metadata: Dict, chapters: List[Dict], output_path: Path) -> None:
@@ -320,6 +375,11 @@ def generate_chapter_pdf(memoir_handler, chapter_id: str, output_path: Path) -> 
     Returns:
         True if successful, raises exception otherwise
     """
+    # Check if WeasyPrint is available
+    is_available, error_message = check_weasyprint_available()
+    if not is_available:
+        raise RuntimeError(error_message)
+
     from weasyprint import HTML, CSS
 
     # Generate HTML content
