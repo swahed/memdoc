@@ -239,7 +239,7 @@ class MemDocApp {
         const chapter = this.chapters.find(ch => ch.id === chapterId);
         const chapterName = chapter ? (chapter.title || 'Untitled Chapter') : 'this chapter';
 
-        if (!confirm(`Are you sure you want to delete "${chapterName}"? This cannot be undone.`)) {
+        if (!confirm(`Delete "${chapterName}"?\n\nThe chapter will be removed from your memoir, but the file will be saved in the "deleted" folder on your hard drive, so you can recover it if needed.`)) {
             return;
         }
 

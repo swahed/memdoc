@@ -244,8 +244,8 @@ class TestChapterDeletion:
         # Should not raise an error
         handler.delete_chapter("ch999")
 
-    def test_delete_chapter_removes_file(self, handler):
-        """Test that deletion removes the actual file."""
+    def test_delete_chapter_moves_to_deleted_folder(self, handler):
+        """Test that deletion moves file to deleted folder instead of removing it."""
         chapter_id = handler.create_chapter("Test", "")
 
         # Get file path before deletion
@@ -257,7 +257,13 @@ class TestChapterDeletion:
 
         handler.delete_chapter(chapter_id)
 
+        # Original file should be gone
         assert not chapter_file.exists()
+
+        # File should be in deleted folder with timestamp
+        deleted_files = list(handler.deleted_dir.glob(f"{chapter_file.stem}_deleted_*.md"))
+        assert len(deleted_files) == 1
+        assert deleted_files[0].exists()
 
 
 class TestChapterReordering:

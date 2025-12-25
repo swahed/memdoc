@@ -25,10 +25,12 @@ class MemoirHandler:
         self.data_dir = Path(data_dir)
         self.memoir_file = self.data_dir / "memoir.json"
         self.chapters_dir = self.data_dir / "chapters"
+        self.deleted_dir = self.data_dir / "chapters" / "deleted"
         self.images_dir = self.data_dir / "images"
 
         # Ensure directories exist
         self.chapters_dir.mkdir(parents=True, exist_ok=True)
+        self.deleted_dir.mkdir(parents=True, exist_ok=True)
         self.images_dir.mkdir(parents=True, exist_ok=True)
 
     def load_memoir_metadata(self) -> Dict:
@@ -140,9 +142,14 @@ class MemoirHandler:
         """
         memoir = self.load_memoir_metadata()
 
-        # Generate new chapter ID
+        # Generate new chapter ID (find max existing number + 1)
         existing_ids = [ch['id'] for ch in memoir['chapters']]
-        chapter_num = len(existing_ids) + 1
+        if existing_ids:
+            # Extract numbers from existing IDs and find the maximum
+            existing_nums = [int(ch_id[2:]) for ch_id in existing_ids if ch_id.startswith('ch')]
+            chapter_num = max(existing_nums) + 1 if existing_nums else 1
+        else:
+            chapter_num = 1
         chapter_id = f"ch{chapter_num:03d}"
 
         # Generate filename from title
@@ -194,7 +201,10 @@ class MemoirHandler:
 
     def delete_chapter(self, chapter_id: str) -> None:
         """
-        Delete a chapter.
+        Delete a chapter by moving it to the deleted folder.
+
+        The chapter file is moved to data/chapters/deleted/ instead of being
+        permanently deleted, allowing recovery if needed.
 
         Args:
             chapter_id: The chapter ID to delete
@@ -205,10 +215,19 @@ class MemoirHandler:
         if not chapter_info:
             return
 
-        # Delete file
+        # Move file to deleted folder instead of deleting
         chapter_file = self.chapters_dir / chapter_info['file']
         if chapter_file.exists():
-            chapter_file.unlink()
+            import shutil
+            import datetime
+
+            # Add timestamp to filename to avoid conflicts
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            original_name = chapter_file.stem  # filename without extension
+            deleted_filename = f"{original_name}_deleted_{timestamp}.md"
+            deleted_path = self.deleted_dir / deleted_filename
+
+            shutil.move(str(chapter_file), str(deleted_path))
 
         # Remove from metadata
         memoir['chapters'] = [ch for ch in memoir['chapters'] if ch['id'] != chapter_id]
