@@ -36,11 +36,19 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 **Goal: Add tools that make writing easier**
 
 ### Features
+- [ ] Visual feedback for markdown formatting (WYSIWYG editor)
+  - Show bold/italic text rendered while editing
+  - Visual indicators for images
+  - Syntax highlighting for markdown
+  - Options: EasyMDE (split-pane), Tiptap (inline), or custom lightweight solution
 - [ ] Event tagging system (inline event markers with dates)
-- [ ] Writing prompts sidebar (fixed prompts, no AI API)
+- [ ] Writing prompts improvements
+  - Better categorization
+  - Search/filter functionality
+  - Random prompt suggestions
 - [ ] Full-text search across all chapters
 - [ ] Chapter navigation/outline view
-- [ ] Word count statistics
+- [ ] Enhanced word count statistics
 
 **Deliverable:** More productive writing experience with helpful tools.
 
