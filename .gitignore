@@ -38,3 +38,11 @@ build/
 *.tmp
 *.bak
 .cache/
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover

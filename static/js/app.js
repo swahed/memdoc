@@ -22,8 +22,29 @@ class MemDocApp {
 
     async init() {
         this.setupEventListeners();
+        this.setupEditorCallbacks();
         await this.loadChapters();
         await this.loadPrompts();
+    }
+
+    setupEditorCallbacks() {
+        // Set callback to refresh chapter list after save (to update word counts)
+        this.editor.onSaveCallback = async () => {
+            const currentChapter = this.editor.currentChapterId;
+            if (currentChapter) {
+                // Reload chapters without auto-selecting to preserve current chapter
+                await this.loadChapters(false);
+
+                // Restore active state for current chapter
+                this.chapterList.querySelectorAll('.chapter-item').forEach(item => {
+                    if (item.dataset.id === currentChapter) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+        };
     }
 
     setupEventListeners() {
@@ -59,7 +80,10 @@ class MemDocApp {
         this.chapterList.innerHTML = this.chapters.map((chapter, index) => `
             <div class="chapter-item" data-id="${chapter.id}">
                 <div class="chapter-item-content">
-                    <div class="chapter-item-title">${this.escapeHtml(chapter.title || 'Untitled Chapter')}</div>
+                    <div class="chapter-item-header">
+                        <div class="chapter-item-title">${this.escapeHtml(chapter.title || 'Untitled Chapter')}</div>
+                        <div class="chapter-item-wordcount">${chapter.wordCount || 0}</div>
+                    </div>
                     ${chapter.subtitle ? `<div class="chapter-item-subtitle">${this.escapeHtml(chapter.subtitle)}</div>` : ''}
                 </div>
                 <div class="chapter-item-actions">

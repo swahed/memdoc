@@ -144,5 +144,17 @@ const API = {
             throw new Error(data.message);
         }
         return data.data;
+    },
+
+    /**
+     * Get word count statistics
+     */
+    async getStatistics() {
+        const response = await fetch('/api/statistics');
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
     }
 };

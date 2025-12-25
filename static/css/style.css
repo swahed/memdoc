@@ -121,10 +121,32 @@ body {
     cursor: pointer;
 }
 
+.chapter-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--spacing-xs);
+    margin-bottom: 0.2rem;
+}
+
 .chapter-item-title {
     font-weight: 500;
     font-size: 0.95rem;
-    margin-bottom: 0.2rem;
+    flex: 1;
+    min-width: 0; /* Allow text truncation if needed */
+}
+
+.chapter-item-wordcount {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    font-variant-numeric: tabular-nums; /* Aligns numbers nicely */
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.chapter-item.active .chapter-item-wordcount {
+    color: rgba(255, 255, 255, 0.7);
+    opacity: 1;
 }
 
 .chapter-item-subtitle {
@@ -448,6 +470,13 @@ body {
 .loading {
     text-align: center;
     color: var(--color-text-light);
+    font-size: 0.9rem;
+    padding: var(--spacing-md);
+}
+
+.error {
+    text-align: center;
+    color: #e74c3c;
     font-size: 0.9rem;
     padding: var(--spacing-md);
 }

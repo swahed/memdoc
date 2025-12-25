@@ -9,6 +9,7 @@ class Editor {
         this.currentFrontmatter = null;
         this.saveTimeout = null;
         this.saveDelay = 2000; // 2 seconds
+        this.onSaveCallback = null; // Callback to execute after successful save
 
         // Get DOM elements
         this.titleInput = document.getElementById('chapterTitle');
@@ -98,6 +99,11 @@ class Editor {
 
             this.currentFrontmatter = frontmatter;
             this.setSaveStatus('saved');
+
+            // Notify app that save was successful (e.g., to update word count in sidebar)
+            if (this.onSaveCallback) {
+                this.onSaveCallback();
+            }
         } catch (error) {
             console.error('Error saving chapter:', error);
             this.setSaveStatus('error');

@@ -142,6 +142,42 @@ def get_prompts():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/statistics', methods=['GET'])
+def get_statistics():
+    """Get word count statistics across all chapters."""
+    try:
+        chapters = memoir_handler.list_chapters()
+        total_words = 0
+        chapter_stats = []
+
+        for chapter_info in chapters:
+            chapter = memoir_handler.load_chapter(chapter_info['id'])
+            if chapter:
+                content = chapter['content']
+                word_count = len(content.split()) if content.strip() else 0
+                total_words += word_count
+
+                chapter_stats.append({
+                    'id': chapter_info['id'],
+                    'title': chapter['frontmatter'].get('title', 'Untitled'),
+                    'subtitle': chapter['frontmatter'].get('subtitle', ''),
+                    'wordCount': word_count,
+                    'readingTimeMinutes': round(word_count / 225)  # 225 avg words/min
+                })
+
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'totalWords': total_words,
+                'totalChapters': len(chapters),
+                'readingTimeMinutes': round(total_words / 225),
+                'chapters': chapter_stats
+            }
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/static/<path:path>')
 def serve_static(path):
     """Serve static files."""
