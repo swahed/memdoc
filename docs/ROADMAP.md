@@ -109,6 +109,10 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ### Full Memoir Export (Future)
 - [ ] Cover page generation
+  - Front cover with title, author, optional cover image
+  - Back cover with memoir description/summary
+  - Simple separate PDF approach initially (front.pdf, back.pdf)
+  - Cover image upload and positioning support
 - [ ] Automatic table of contents
 - [ ] Page numbering across chapters
 - [ ] Export entire memoir as one PDF
