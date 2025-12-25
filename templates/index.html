@@ -63,6 +63,12 @@
                 <button class="format-btn" id="btnH1" title="Heading 1" disabled>H1</button>
                 <button class="format-btn" id="btnH2" title="Heading 2" disabled>H2</button>
                 <button class="format-btn" id="btnH3" title="Heading 3" disabled>H3</button>
+                <div class="toolbar-separator"></div>
+                <button class="format-btn" id="btnInsertImage" title="Insert image" disabled>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm11 1H3v6.5l2.5-2.5 1.5 1.5 3-3 3 3V4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                    </svg>
+                </button>
             </div>
 
             <!-- Editor Content -->
@@ -105,6 +111,94 @@ You can use basic formatting:
             <path d="M3 10h14M3 5h14M3 15h14" stroke-width="2" stroke-linecap="round"/>
         </svg>
     </button>
+
+    <!-- Image Upload Modal -->
+    <div class="modal-overlay" id="imageUploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Insert Image</h3>
+                <button class="btn-close-modal" id="btnCloseImageModal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Drag-drop upload area -->
+                <div class="upload-dropzone" id="uploadDropzone">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                    </svg>
+                    <p>Drag image here or click to browse</p>
+                    <p class="upload-hint">JPG, PNG, GIF, WebP - Max 20MB</p>
+                    <input type="file" accept="image/*" id="imageFileInput" hidden>
+                </div>
+
+                <!-- Preview area (hidden initially) -->
+                <div class="upload-preview" id="uploadPreview" hidden>
+                    <img id="previewImage" src="" alt="Preview">
+
+                    <!-- Image info -->
+                    <div class="image-info">
+                        <div class="info-row">
+                            <strong>File:</strong> <span id="infoFilename"></span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Size:</strong> <span id="infoFileSize"></span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Dimensions:</strong> <span id="infoDimensions"></span>
+                        </div>
+                    </div>
+
+                    <!-- Warnings -->
+                    <div id="imageWarnings" class="warnings"></div>
+
+                    <!-- Image options -->
+                    <div class="image-options">
+                        <div class="option-group">
+                            <label for="imagePosition">Position:</label>
+                            <select id="imagePosition">
+                                <option value="center">Center</option>
+                                <option value="left">Left (text wraps)</option>
+                                <option value="right">Right (text wraps)</option>
+                                <option value="full">Full width</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="imageSize">Display Size:</label>
+                            <select id="imageSize">
+                                <option value="small">Small (300px)</option>
+                                <option value="medium" selected>Medium (500px)</option>
+                                <option value="large">Large (700px)</option>
+                                <option value="full">Full width</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group full-width">
+                            <label for="imageCaption">Caption (optional):</label>
+                            <input type="text" id="imageCaption" placeholder="Describe the photo...">
+                        </div>
+                    </div>
+
+                    <!-- Helpful tips -->
+                    <div class="image-tips">
+                        <h4>💡 Tips for Best Results:</h4>
+                        <ul>
+                            <li>Use original photos from camera/scanner (not screenshots)</li>
+                            <li>Aim for at least 1500 pixels wide for good print quality</li>
+                            <li>Medium size (500px) works well for most memoir photos</li>
+                            <li>JPG format is best for photos, PNG for diagrams</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal actions -->
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btnCancelUpload">Cancel</button>
+                <button class="btn-primary" id="btnInsertImageToEditor" disabled>Insert Image</button>
+            </div>
+        </div>
+    </div>
 
     <script src="/static/js/api.js"></script>
     <script src="/static/js/editor.js"></script>

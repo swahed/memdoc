@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from core.markdown_handler import MemoirHandler
+from core.image_handler import save_uploaded_image, check_image_resolution
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
@@ -174,6 +175,91 @@ def get_statistics():
                 'chapters': chapter_stats
             }
         })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/images/upload', methods=['POST'])
+def upload_image():
+    """Upload an image file."""
+    try:
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            return jsonify({'status': 'error', 'message': 'No file provided'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'status': 'error', 'message': 'No file selected'}), 400
+
+        # Validate file type
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+        file_ext = Path(file.filename).suffix.lower()
+        if file_ext not in allowed_extensions:
+            return jsonify({
+                'status': 'error',
+                'message': f'Invalid file type. Allowed: {", ".join(allowed_extensions)}'
+            }), 400
+
+        # Read file data
+        file_data = file.read()
+
+        # Save image
+        images_dir = memoir_handler.images_dir
+        saved_path, info = save_uploaded_image(file_data, file.filename, images_dir)
+
+        # Check resolution for warnings
+        is_suitable, resolution_msg = check_image_resolution(saved_path)
+
+        # Compile response with all info and warnings
+        response = {
+            'status': 'success',
+            'data': {
+                'filename': info['saved_filename'],
+                'path': f'../images/{info["saved_filename"]}',
+                'original_filename': info['original_filename'],
+                'dimensions': info.get('new_dimensions', info['original_dimensions']),
+                'size_mb': info['final_size_mb'],
+                'optimized': info['optimized'],
+                'warnings': info['warnings'].copy()
+            }
+        }
+
+        # Add resolution warning
+        if not is_suitable:
+            response['data']['warnings'].insert(0, resolution_msg)
+        else:
+            response['data']['resolution_ok'] = True
+
+        return jsonify(response)
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/images/<filename>', methods=['GET'])
+def get_image(filename):
+    """Serve an image file."""
+    try:
+        images_dir = memoir_handler.images_dir
+        return send_from_directory(images_dir, filename)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 404
+
+
+@app.route('/api/images/<filename>', methods=['DELETE'])
+def delete_image(filename):
+    """Delete an image file."""
+    try:
+        images_dir = memoir_handler.images_dir
+        image_path = images_dir / filename
+
+        if not image_path.exists():
+            return jsonify({'status': 'error', 'message': 'Image not found'}), 404
+
+        # Delete the file
+        image_path.unlink()
+
+        return jsonify({'status': 'success', 'message': 'Image deleted'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 

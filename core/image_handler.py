@@ -45,7 +45,8 @@ def check_image_resolution(image_path: Path, min_dpi: int = 300) -> Tuple[bool, 
         return False, f"Error checking image: {str(e)}"
 
 
-def save_uploaded_image(file_data: bytes, filename: str, images_dir: Path) -> Path:
+def save_uploaded_image(file_data: bytes, filename: str, images_dir: Path,
+                       optimize: bool = True, max_size: int = 4000) -> Tuple[Path, dict]:
     """
     Save an uploaded image to the images directory.
 
@@ -53,12 +54,85 @@ def save_uploaded_image(file_data: bytes, filename: str, images_dir: Path) -> Pa
         file_data: Binary file data
         filename: Desired filename
         images_dir: Path to images directory
+        optimize: Whether to optimize/resize large images (default True)
+        max_size: Maximum dimension in pixels (default 4000)
 
     Returns:
-        Path to saved image
+        Tuple of (Path to saved image, dict with info including warnings)
     """
-    # TODO: Implement image saving with optional optimization
-    pass
+    import re
+    import io
+    from datetime import datetime
+
+    # Ensure images directory exists
+    images_dir.mkdir(parents=True, exist_ok=True)
+
+    # Sanitize filename: remove special chars, keep only alphanumeric, dash, underscore, dot
+    safe_filename = re.sub(r'[^\w\-.]', '_', filename)
+    safe_filename = safe_filename.lower()
+
+    # Check if file already exists, add timestamp if needed
+    final_path = images_dir / safe_filename
+    if final_path.exists():
+        stem = final_path.stem
+        suffix = final_path.suffix
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_filename = f"{stem}_{timestamp}{suffix}"
+        final_path = images_dir / safe_filename
+
+    info = {
+        'original_filename': filename,
+        'saved_filename': safe_filename,
+        'warnings': [],
+        'optimized': False,
+        'original_size_mb': len(file_data) / (1024 * 1024)
+    }
+
+    try:
+        # Open image from bytes
+        img = Image.open(io.BytesIO(file_data))
+        width, height = img.size
+
+        info['original_dimensions'] = f"{width}x{height}"
+
+        # Check if optimization is needed
+        needs_resize = optimize and (width > max_size or height > max_size)
+
+        if needs_resize:
+            # Calculate new dimensions maintaining aspect ratio
+            if width > height:
+                new_width = max_size
+                new_height = int(height * (max_size / width))
+            else:
+                new_height = max_size
+                new_width = int(width * (max_size / height))
+
+            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            info['optimized'] = True
+            info['new_dimensions'] = f"{new_width}x{new_height}"
+            info['warnings'].append(f'Image was resized from {width}x{height} to {new_width}x{new_height} pixels')
+
+        # Save image
+        save_kwargs = {}
+        if img.format == 'JPEG' or final_path.suffix.lower() in ['.jpg', '.jpeg']:
+            save_kwargs['quality'] = 90
+            save_kwargs['optimize'] = True
+        elif img.format == 'PNG' or final_path.suffix.lower() == '.png':
+            save_kwargs['optimize'] = True
+
+        img.save(final_path, **save_kwargs)
+
+        # Get final file size
+        info['final_size_mb'] = final_path.stat().st_size / (1024 * 1024)
+
+        # Add file size warning if too large
+        if info['final_size_mb'] > 10:
+            info['warnings'].append(f'Large file size ({info["final_size_mb"]:.1f} MB)')
+
+        return final_path, info
+
+    except Exception as e:
+        raise ValueError(f"Failed to save image: {str(e)}")
 
 
 def generate_image_markdown(image_path: str, caption: str = "", position: str = "center",

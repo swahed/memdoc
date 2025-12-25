@@ -59,10 +59,16 @@ pip install -r requirements.txt
 6. **Safe delete**: Deleted chapters are preserved in `data/chapters/deleted/` folder for recovery
 7. **Get inspired**: Click the prompts button (bottom-right) for 40+ memoir writing prompts
 8. **Track progress**: Word count displayed in the status bar and per-chapter in sidebar
+9. **Insert images**: Add photos to your memoir with drag-and-drop or image button
+   - **Automatic quality checks**: Color-coded warnings for print quality (red/yellow/green)
+   - **Smart optimization**: Large images automatically resized to save space
+   - **Flexible positioning**: Left, center, right, or full-width placement
+   - **Size control**: Small (300px), medium (500px), large (700px), or full width
+   - **Add captions**: Describe your photos with optional captions
+   - **Helpful guidance**: Tips for best results with print-quality images
 
 **🚧 Coming Soon:**
 - Event tagging and timeline generation
-- Image uploads with resolution checking
 - PDF export with professional formatting
 - Desktop application mode
 
