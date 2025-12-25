@@ -267,6 +267,58 @@ body {
     opacity: 0.5;
 }
 
+/* === Formatting Toolbar === */
+.formatting-toolbar {
+    padding: var(--spacing-xs) var(--spacing-xl);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--color-sidebar-bg);
+    max-width: var(--max-editor-width);
+    margin: 0 auto;
+    width: 100%;
+}
+
+.format-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 0.4rem 0.6rem;
+    color: var(--color-text);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 32px;
+    height: 32px;
+}
+
+.format-btn:hover:not(:disabled) {
+    background: rgba(74, 144, 226, 0.1);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.format-btn:active:not(:disabled) {
+    background: rgba(74, 144, 226, 0.2);
+}
+
+.format-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border);
+    margin: 0 0.25rem;
+}
+
 /* === Editor Content === */
 .editor-content {
     flex: 1;

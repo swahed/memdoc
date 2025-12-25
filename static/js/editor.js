@@ -18,6 +18,13 @@ class Editor {
         this.saveStatus = document.getElementById('saveStatus');
         this.wordCount = document.getElementById('wordCount');
 
+        // Get formatting toolbar buttons
+        this.btnBold = document.getElementById('btnBold');
+        this.btnItalic = document.getElementById('btnItalic');
+        this.btnH1 = document.getElementById('btnH1');
+        this.btnH2 = document.getElementById('btnH2');
+        this.btnH3 = document.getElementById('btnH3');
+
         this.setupEventListeners();
     }
 
@@ -28,6 +35,26 @@ class Editor {
         this.editor.addEventListener('input', () => {
             this.handleInput();
             this.updateWordCount();
+        });
+
+        // Formatting toolbar buttons
+        this.btnBold.addEventListener('click', () => this.formatBold());
+        this.btnItalic.addEventListener('click', () => this.formatItalic());
+        this.btnH1.addEventListener('click', () => this.formatHeading(1));
+        this.btnH2.addEventListener('click', () => this.formatHeading(2));
+        this.btnH3.addEventListener('click', () => this.formatHeading(3));
+
+        // Keyboard shortcuts
+        this.editor.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'b' || e.key === 'B') {
+                    e.preventDefault();
+                    this.formatBold();
+                } else if (e.key === 'i' || e.key === 'I') {
+                    e.preventDefault();
+                    this.formatItalic();
+                }
+            }
         });
 
         // Update word count on load
@@ -67,6 +94,13 @@ class Editor {
             this.titleInput.disabled = false;
             this.subtitleInput.disabled = false;
             this.editor.disabled = false;
+
+            // Enable formatting toolbar
+            this.btnBold.disabled = false;
+            this.btnItalic.disabled = false;
+            this.btnH1.disabled = false;
+            this.btnH2.disabled = false;
+            this.btnH3.disabled = false;
 
             this.updateWordCount();
             this.setSaveStatus('saved');
@@ -119,6 +153,14 @@ class Editor {
         this.titleInput.disabled = true;
         this.subtitleInput.disabled = true;
         this.editor.disabled = true;
+
+        // Disable formatting toolbar
+        this.btnBold.disabled = true;
+        this.btnItalic.disabled = true;
+        this.btnH1.disabled = true;
+        this.btnH2.disabled = true;
+        this.btnH3.disabled = true;
+
         this.setSaveStatus('ready');
         this.updateWordCount();
     }
@@ -166,6 +208,96 @@ class Editor {
         // Move cursor after inserted text
         const newPosition = start + text.length;
         this.editor.setSelectionRange(newPosition, newPosition);
+        this.editor.focus();
+
+        // Trigger auto-save
+        this.handleInput();
+    }
+
+    formatBold() {
+        this.wrapSelection('**', '**', 'bold text');
+    }
+
+    formatItalic() {
+        this.wrapSelection('*', '*', 'italic text');
+    }
+
+    formatHeading(level) {
+        const prefix = '#'.repeat(level) + ' ';
+        this.insertAtLineStart(prefix, 'Heading ' + level);
+    }
+
+    wrapSelection(before, after, placeholder) {
+        const start = this.editor.selectionStart;
+        const end = this.editor.selectionEnd;
+        const currentValue = this.editor.value;
+        const selectedText = currentValue.substring(start, end);
+
+        let newText;
+        let newCursorPos;
+
+        if (selectedText) {
+            // Wrap selected text
+            newText = before + selectedText + after;
+            newCursorPos = start + before.length + selectedText.length + after.length;
+        } else {
+            // Insert placeholder with markers
+            newText = before + placeholder + after;
+            newCursorPos = start + before.length + placeholder.length;
+        }
+
+        this.editor.value = currentValue.substring(0, start) + newText + currentValue.substring(end);
+
+        // Set cursor position
+        this.editor.setSelectionRange(newCursorPos, newCursorPos);
+        this.editor.focus();
+
+        // Trigger auto-save
+        this.handleInput();
+    }
+
+    insertAtLineStart(prefix, placeholder) {
+        const start = this.editor.selectionStart;
+        const currentValue = this.editor.value;
+
+        // Find the start of the current line
+        let lineStart = start;
+        while (lineStart > 0 && currentValue[lineStart - 1] !== '\n') {
+            lineStart--;
+        }
+
+        // Get the current line
+        let lineEnd = start;
+        while (lineEnd < currentValue.length && currentValue[lineEnd] !== '\n') {
+            lineEnd++;
+        }
+
+        const currentLine = currentValue.substring(lineStart, lineEnd);
+
+        // Check if line already has a heading marker
+        const headingMatch = currentLine.match(/^(#{1,6})\s/);
+
+        let newText;
+        let newCursorPos;
+
+        if (headingMatch) {
+            // Replace existing heading marker
+            newText = prefix + currentLine.substring(headingMatch[0].length);
+            newCursorPos = lineStart + newText.length;
+        } else if (currentLine.trim()) {
+            // Add heading marker to existing text
+            newText = prefix + currentLine;
+            newCursorPos = lineStart + newText.length;
+        } else {
+            // Empty line - insert placeholder
+            newText = prefix + placeholder;
+            newCursorPos = lineStart + prefix.length + placeholder.length;
+        }
+
+        this.editor.value = currentValue.substring(0, lineStart) + newText + currentValue.substring(lineEnd);
+
+        // Set cursor position
+        this.editor.setSelectionRange(newCursorPos, newCursorPos);
         this.editor.focus();
 
         // Trigger auto-save
