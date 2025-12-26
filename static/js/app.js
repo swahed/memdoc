@@ -335,14 +335,12 @@ class MemDocApp {
         this.previewModalTitle = document.getElementById('previewModalTitle');
         this.previewFrame = document.getElementById('previewFrame');
         this.btnPreview = document.getElementById('btnPreview');
-        this.btnExportPDF = document.getElementById('btnExportPDF');
         this.btnClosePreview = document.getElementById('btnClosePreview');
         this.btnClosePreviewBottom = document.getElementById('btnClosePreviewBottom');
         this.btnExportFromPreview = document.getElementById('btnExportFromPreview');
 
         // Add event listeners
         this.btnPreview.addEventListener('click', () => this.showPreview());
-        this.btnExportPDF.addEventListener('click', () => this.exportPDF());
         this.btnClosePreview.addEventListener('click', () => this.closePreview());
         this.btnClosePreviewBottom.addEventListener('click', () => this.closePreview());
         this.btnExportFromPreview.addEventListener('click', () => {

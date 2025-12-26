@@ -32,7 +32,6 @@ Du kannst einfache Formatierung verwenden:
             heading3Title: 'Überschrift 3',
             insertImageTitle: 'Bild einfügen',
             previewChapterTitle: 'Kapitel-Vorschau',
-            exportPDFTitle: 'Als PDF exportieren',
 
             // Status bar
             statusReady: 'Bereit',
