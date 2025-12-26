@@ -192,6 +192,15 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 **Nice-to-have features for later consideration**
 
 ### Possible Features
+- [ ] **Process cleanup on window close** ⚠️ IMPORTANT for non-technical users
+  - Currently, closing the app window leaves background processes running
+  - User must manually kill processes to delete/replace .exe
+  - This would be confusing/frustrating for mom
+  - Solutions:
+    - Add window close detection to exit Python process cleanly
+    - System tray icon with explicit "Exit" option
+    - Auto-cleanup timeout after window closes
+  - **Priority:** Medium-High (affects user experience and troubleshooting)
 - [ ] AI-assisted writing features
   - Smart writing prompts based on context
   - Grammar and style suggestions
