@@ -6,7 +6,7 @@
     <title>MemDoc - Memoiren schreiben</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
+<body data-is-bundled="{{ 'true' if is_bundled else 'false' }}">
     <!-- Test Build Warning Banner -->
     {% if is_test_build %}
     <div class="test-build-warning">

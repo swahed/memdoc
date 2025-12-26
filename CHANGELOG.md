@@ -6,6 +6,13 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.6] - 2025-12-26
+
+### Behoben
+- Update-Mechanismus funktioniert jetzt korrekt in der .exe
+- Dev-Mode-Erkennung basiert jetzt auf PyInstaller-Bundle-Status statt localhost
+- Updates sind nun für .exe-Builds verfügbar
+
 ## [1.1.5] - 2025-12-26
 
 ### Hinzugefügt

@@ -1055,9 +1055,9 @@ class MemDocApp {
         const testWarning = document.querySelector('.test-build-warning');
         this.isTestBuild = testWarning !== null;
 
-        // Check if we're in dev mode (port 5000 or localhost)
-        this.isDevMode = window.location.hostname === 'localhost' ||
-                         window.location.port === '5000';
+        // Check if we're in dev mode (NOT running from bundled .exe)
+        const isBundled = document.body.dataset.isBundled === 'true';
+        this.isDevMode = !isBundled;
     }
 
     setupUpdateUI() {

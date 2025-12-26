@@ -52,11 +52,15 @@ memoir_handler = None
 @app.route('/')
 def index():
     """Render the main editor interface."""
+    # Check if running from PyInstaller bundle
+    is_bundled = getattr(sys, 'frozen', False)
+
     return render_template(
         'index.html',
         is_test_build=IS_TEST_BUILD,
         test_build_branch=TEST_BUILD_BRANCH,
-        version=VERSION
+        version=VERSION,
+        is_bundled=is_bundled
     )
 
 
