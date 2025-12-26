@@ -6,6 +6,12 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.8] - 2025-12-26
+
+### Behoben
+- App beendet sich jetzt korrekt nach Update-Installation
+- Update-Mechanismus kann .exe nun erfolgreich ersetzen
+
 ## [1.1.7] - 2025-12-26
 
 ### Verbessert

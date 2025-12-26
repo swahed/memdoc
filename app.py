@@ -776,8 +776,19 @@ def install_update():
                 'message': f'Update installation failed: {error}'
             }), 500
 
+        # Schedule app exit after response is sent
+        # This allows the update script to replace the .exe
+        def delayed_exit():
+            import time
+            time.sleep(1)  # Give time for response to be sent
+            os._exit(0)  # Force exit all threads
+
+        import threading
+        exit_thread = threading.Thread(target=delayed_exit, daemon=True)
+        exit_thread.start()
+
         # If we get here, update script is launched
-        # App will exit soon, this response may not be received
+        # App will exit in 1 second
         return jsonify({
             'status': 'success',
             'message': 'Update is being installed, app will restart...'
