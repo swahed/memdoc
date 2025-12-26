@@ -8,7 +8,7 @@ or production build based on environment variables set during compilation.
 import os
 
 # Version information
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 RELEASE_DATE = "2025-12-26"
 GITHUB_REPO = "swahed/memdoc"
 

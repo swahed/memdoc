@@ -14,6 +14,35 @@
     </div>
     {% endif %}
 
+    <!-- Update Available Banner -->
+    <div class="update-banner" id="updateBanner" style="display: none;">
+        <div class="update-banner-content">
+            <span class="update-banner-icon">🔄</span>
+            <span class="update-banner-message">
+                <strong>Version <span id="updateBannerVersion"></span> verfügbar</strong> –
+                <span id="updateBannerDescription"></span>
+            </span>
+        </div>
+        <div class="update-banner-actions">
+            <button class="btn-update-banner" id="btnShowUpdateModal">Details</button>
+            <button class="btn-dismiss-update" id="btnDismissUpdate" title="Nicht mehr anzeigen">&times;</button>
+        </div>
+    </div>
+
+    <!-- Update Download Progress Banner -->
+    <div class="update-banner downloading" id="updateBannerDownloading" style="display: none;">
+        <div class="update-banner-content">
+            <span class="update-banner-spinner">⏳</span>
+            <span class="update-banner-message">
+                <strong>Update wird heruntergeladen...</strong>
+                <span id="downloadProgressPct">0%</span>
+            </span>
+        </div>
+        <div class="update-progress-mini">
+            <div class="update-progress-fill" id="downloadProgressFill" style="width: 0%;"></div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="app-container">
         <!-- Sidebar - Chapter Navigation -->
@@ -334,6 +363,25 @@ Du kannst einfache Formatierung verwenden:
 
             <div class="modal-body">
                 <div class="settings-section">
+                    <h4>Software-Updates</h4>
+                    <p class="section-description">
+                        MemDoc sucht beim Start automatisch nach Updates. Du kannst auch manuell nach Updates suchen.
+                    </p>
+
+                    <div class="update-check-container">
+                        <button class="btn-primary" id="btnCheckUpdates">Jetzt nach Updates suchen</button>
+                        <p id="updateCheckStatus" class="update-check-status"></p>
+                    </div>
+
+                    <div class="current-version-info">
+                        <label>Aktuelle Version:</label>
+                        <code id="currentVersionDisplay">Lädt...</code>
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <div class="settings-section">
                     <h4>Datenspeicherort</h4>
                     <p class="section-description">
                         Speichere deine Memoiren in einem OneDrive- oder anderen Cloud-Ordner für automatisches Backup.
@@ -432,6 +480,72 @@ Du kannst einfache Formatierung verwenden:
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancelSubfolder">Abbrechen</button>
                 <button class="btn-primary" id="btnConfirmSubfolder">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Modal -->
+    <div class="modal-overlay" id="updateModal">
+        <div class="modal-content update-modal-content">
+            <div class="modal-header">
+                <h3>Update verfügbar</h3>
+                <button class="btn-close-modal" id="btnCloseUpdateModal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Version Info -->
+                <div class="update-version-info">
+                    <div class="version-comparison">
+                        <div class="version-item version-current">
+                            <label>Aktuelle Version:</label>
+                            <span id="currentVersion" class="version-number">...</span>
+                        </div>
+                        <div class="version-arrow">→</div>
+                        <div class="version-item version-new">
+                            <label>Neue Version:</label>
+                            <span id="newVersion" class="version-number">...</span>
+                        </div>
+                    </div>
+                    <div class="update-release-date">
+                        <strong>Veröffentlicht:</strong> <span id="releaseDate">...</span>
+                    </div>
+                </div>
+
+                <!-- Release Notes -->
+                <div class="update-release-notes">
+                    <h4>Was ist neu?</h4>
+                    <div id="releaseNotesContent" class="release-notes-content">
+                        <p class="loading">Lade Änderungen...</p>
+                    </div>
+                </div>
+
+                <!-- Download Progress (hidden initially) -->
+                <div class="update-download-progress" id="updateDownloadProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="updateProgressBar" style="width: 0%;"></div>
+                    </div>
+                    <p id="updateStatus" class="update-status-text">Lade Update herunter...</p>
+                    <p class="download-details">
+                        <span id="downloadedBytes">0 MB</span> / <span id="totalBytes">0 MB</span>
+                    </p>
+                </div>
+
+                <!-- Rollback Section (hidden initially) -->
+                <div class="update-rollback-section" id="updateRollbackSection" style="display: none;">
+                    <h4>Frühere Versionen</h4>
+                    <p class="section-description">
+                        Falls nach dem Update Probleme auftreten, kannst du zu einer früheren Version zurückkehren.
+                    </p>
+                    <div class="backup-list" id="backupList">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btnCancelUpdate">Später</button>
+                <button class="btn-primary" id="btnDownloadUpdate">Herunterladen</button>
+                <button class="btn-primary" id="btnInstallUpdate" style="display: none;">Installieren & Neustarten</button>
             </div>
         </div>
     </div>

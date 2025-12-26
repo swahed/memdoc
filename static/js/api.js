@@ -249,5 +249,102 @@ const API = {
             throw new Error(data.message);
         }
         return data;
+    },
+
+    // ========== Update System ==========
+
+    /**
+     * Get current version information
+     */
+    async getVersion() {
+        const response = await fetch('/api/version');
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
+    },
+
+    /**
+     * Check for available updates from GitHub
+     */
+    async checkForUpdates() {
+        const response = await fetch('/api/updates/check');
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
+    },
+
+    /**
+     * Start downloading an update
+     */
+    async startUpdateDownload(downloadUrl) {
+        const response = await fetch('/api/updates/download', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ download_url: downloadUrl })
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
+    },
+
+    /**
+     * Get download progress status
+     */
+    async getDownloadStatus() {
+        const response = await fetch('/api/updates/download/status');
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
+    },
+
+    /**
+     * Install downloaded update and restart application
+     */
+    async installUpdate() {
+        const response = await fetch('/api/updates/install', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
+    },
+
+    /**
+     * Get list of available version backups
+     */
+    async getUpdateBackups() {
+        const response = await fetch('/api/updates/backups');
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
+    },
+
+    /**
+     * Rollback to a previous version
+     */
+    async rollbackToVersion(version) {
+        const response = await fetch('/api/updates/rollback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ version })
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
     }
 };

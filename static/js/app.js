@@ -11,6 +11,12 @@ class MemDocApp {
         this.coverData = null;
         this.coverImageFile = null;
 
+        // Update system
+        this.updateInfo = null;
+        this.downloadPollInterval = null;
+        this.isTestBuild = false;
+        this.isDevMode = false;
+
         // Get DOM elements
         this.chapterList = document.getElementById('chapterList');
         this.btnNewChapter = document.getElementById('btnNewChapter');
@@ -23,12 +29,21 @@ class MemDocApp {
     }
 
     async init() {
+        // Check if updates should be disabled
+        this.checkUpdateAvailability();
+
         this.setupEventListeners();
         this.setupEditorCallbacks();
         this.setupPreviewExport();
         this.setupCoverPage();
+        this.setupUpdateUI();
         await this.loadChapters();
         await this.loadPrompts();
+
+        // Check for updates on startup (if enabled)
+        if (!this.isTestBuild && !this.isDevMode) {
+            await this.checkForUpdatesOnStartup();
+        }
     }
 
     setupEditorCallbacks() {
@@ -1031,6 +1046,474 @@ class MemDocApp {
 
         // Show suggestions
         this.suggestedColorsContainer.style.display = 'block';
+    }
+
+    // ========== Update System Methods ==========
+
+    checkUpdateAvailability() {
+        // Check if we're in test build mode
+        const testWarning = document.querySelector('.test-build-warning');
+        this.isTestBuild = testWarning !== null;
+
+        // Check if we're in dev mode (port 5000 or localhost)
+        this.isDevMode = window.location.hostname === 'localhost' ||
+                         window.location.port === '5000';
+    }
+
+    setupUpdateUI() {
+        // Get DOM elements
+        this.updateBanner = document.getElementById('updateBanner');
+        this.updateBannerDownloading = document.getElementById('updateBannerDownloading');
+        this.updateModal = document.getElementById('updateModal');
+        this.btnShowUpdateModal = document.getElementById('btnShowUpdateModal');
+        this.btnDismissUpdate = document.getElementById('btnDismissUpdate');
+        this.btnCloseUpdateModal = document.getElementById('btnCloseUpdateModal');
+        this.btnDownloadUpdate = document.getElementById('btnDownloadUpdate');
+        this.btnInstallUpdate = document.getElementById('btnInstallUpdate');
+        this.btnCancelUpdate = document.getElementById('btnCancelUpdate');
+        this.btnCheckUpdates = document.getElementById('btnCheckUpdates');
+
+        // Add event listeners
+        if (this.btnShowUpdateModal) {
+            this.btnShowUpdateModal.addEventListener('click', () => this.showUpdateModal());
+        }
+        if (this.btnDismissUpdate) {
+            this.btnDismissUpdate.addEventListener('click', () => this.dismissUpdateBanner());
+        }
+        if (this.btnCloseUpdateModal) {
+            this.btnCloseUpdateModal.addEventListener('click', () => this.closeUpdateModal());
+        }
+        if (this.btnDownloadUpdate) {
+            this.btnDownloadUpdate.addEventListener('click', () => this.startDownload());
+        }
+        if (this.btnInstallUpdate) {
+            this.btnInstallUpdate.addEventListener('click', () => this.installUpdate());
+        }
+        if (this.btnCancelUpdate) {
+            this.btnCancelUpdate.addEventListener('click', () => this.closeUpdateModal());
+        }
+        if (this.btnCheckUpdates) {
+            this.btnCheckUpdates.addEventListener('click', () => this.manualCheckForUpdates());
+        }
+
+        // Load current version into settings
+        this.loadCurrentVersion();
+    }
+
+    async loadCurrentVersion() {
+        try {
+            const versionInfo = await API.getVersion();
+            const versionDisplay = document.getElementById('currentVersionDisplay');
+            if (versionDisplay) {
+                versionDisplay.textContent = versionInfo.version;
+            }
+        } catch (error) {
+            console.error('Error loading version:', error);
+        }
+    }
+
+    async checkForUpdatesOnStartup() {
+        try {
+            const updateInfo = await API.checkForUpdates();
+
+            if (updateInfo.update_available) {
+                this.updateInfo = updateInfo;
+                this.showUpdateBannerIfNotDismissed();
+            }
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+            // Silent fail on startup - don't bother user
+        }
+    }
+
+    async manualCheckForUpdates() {
+        const statusEl = document.getElementById('updateCheckStatus');
+        const btnCheck = document.getElementById('btnCheckUpdates');
+
+        if (this.isTestBuild) {
+            statusEl.textContent = i18n.t('testBuildNoUpdates');
+            statusEl.className = 'update-check-status error';
+            return;
+        }
+
+        if (this.isDevMode) {
+            statusEl.textContent = i18n.t('devModeNoUpdates');
+            statusEl.className = 'update-check-status error';
+            return;
+        }
+
+        try {
+            statusEl.textContent = i18n.t('checkingForUpdates');
+            statusEl.className = 'update-check-status checking';
+            btnCheck.disabled = true;
+
+            const updateInfo = await API.checkForUpdates();
+
+            if (updateInfo.update_available) {
+                this.updateInfo = updateInfo;
+                statusEl.textContent = `${i18n.t('updateAvailable')}: Version ${updateInfo.latest_version}`;
+                statusEl.className = 'update-check-status success';
+
+                // Show banner and modal
+                this.showUpdateBanner();
+                this.showUpdateModal();
+            } else {
+                statusEl.textContent = i18n.t('youAreUpToDate');
+                statusEl.className = 'update-check-status success';
+            }
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+            statusEl.textContent = i18n.t('updateCheckFailed') + ': ' + error.message;
+            statusEl.className = 'update-check-status error';
+        } finally {
+            btnCheck.disabled = false;
+        }
+    }
+
+    showUpdateBannerIfNotDismissed() {
+        if (!this.updateInfo) return;
+
+        // Check if user dismissed this version
+        const dismissedVersion = localStorage.getItem('dismissedUpdateVersion');
+        if (dismissedVersion === this.updateInfo.latest_version) {
+            return; // User already dismissed this version
+        }
+
+        this.showUpdateBanner();
+    }
+
+    showUpdateBanner() {
+        if (!this.updateInfo || !this.updateBanner) return;
+
+        // Populate banner content
+        document.getElementById('updateBannerVersion').textContent = this.updateInfo.latest_version;
+        document.getElementById('updateBannerDescription').textContent =
+            i18n.t('updateBannerMessage');
+
+        // Show banner
+        this.updateBanner.style.display = 'flex';
+    }
+
+    hideUpdateBanner() {
+        if (this.updateBanner) {
+            this.updateBanner.style.display = 'none';
+        }
+    }
+
+    dismissUpdateBanner() {
+        if (!this.updateInfo) return;
+
+        // Store dismissed version in localStorage
+        try {
+            localStorage.setItem('dismissedUpdateVersion', this.updateInfo.latest_version);
+        } catch (error) {
+            console.warn('Failed to persist dismissal:', error);
+        }
+
+        // Hide banner
+        this.hideUpdateBanner();
+
+        // Show brief message
+        const statusEl = document.getElementById('updateCheckStatus');
+        if (statusEl) {
+            statusEl.textContent = i18n.t('updateDismissedMessage');
+            statusEl.className = 'update-check-status';
+        }
+    }
+
+    async showUpdateModal() {
+        if (!this.updateInfo || !this.updateModal) return;
+
+        // Populate modal content
+        document.getElementById('currentVersion').textContent = this.updateInfo.current_version;
+        document.getElementById('newVersion').textContent = this.updateInfo.latest_version;
+        document.getElementById('releaseDate').textContent =
+            this.formatDate(this.updateInfo.release_date);
+
+        // Show release notes
+        const notesContent = document.getElementById('releaseNotesContent');
+        if (this.updateInfo.release_notes) {
+            // Simple markdown-like rendering
+            notesContent.innerHTML = this.renderReleaseNotes(this.updateInfo.release_notes);
+        } else {
+            notesContent.innerHTML = '<p>' + i18n.t('updateBannerMessage') + '</p>';
+        }
+
+        // Reset UI state
+        document.getElementById('updateDownloadProgress').style.display = 'none';
+        document.getElementById('btnDownloadUpdate').style.display = 'inline-block';
+        document.getElementById('btnInstallUpdate').style.display = 'none';
+
+        // Load and show backups (if any)
+        await this.loadUpdateBackups();
+
+        // Show modal
+        this.updateModal.classList.add('visible');
+    }
+
+    closeUpdateModal() {
+        if (this.updateModal) {
+            this.updateModal.classList.remove('visible');
+        }
+    }
+
+    formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('de-DE', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    renderReleaseNotes(markdown) {
+        // Simple markdown rendering
+        let html = markdown
+            // Convert headers
+            .replace(/^### (.+)$/gm, '<h5>$1</h5>')
+            .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+            .replace(/^# (.+)$/gm, '<h3>$1</h3>')
+            // Convert bold and italic
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            // Convert line breaks to paragraphs
+            .split('\n\n')
+            .map(p => p.trim())
+            .filter(p => p)
+            .map(p => {
+                // Check if it's a list
+                if (p.includes('\n- ') || p.startsWith('- ')) {
+                    const items = p.split('\n- ')
+                        .map(item => item.replace(/^- /, ''))
+                        .filter(item => item)
+                        .map(item => '<li>' + item + '</li>')
+                        .join('');
+                    return '<ul>' + items + '</ul>';
+                }
+                // Don't wrap headers in <p>
+                if (p.startsWith('<h')) {
+                    return p;
+                }
+                return '<p>' + p + '</p>';
+            })
+            .join('');
+
+        return html;
+    }
+
+    async startDownload() {
+        try {
+            // Hide download button, show progress
+            document.getElementById('btnDownloadUpdate').style.display = 'none';
+            document.getElementById('updateDownloadProgress').style.display = 'block';
+            document.getElementById('updateStatus').textContent = i18n.t('downloadingUpdate');
+
+            // Start download
+            await API.startUpdateDownload(this.updateInfo.download_url);
+
+            // Show downloading banner
+            this.hideUpdateBanner();
+            if (this.updateBannerDownloading) {
+                this.updateBannerDownloading.style.display = 'flex';
+            }
+
+            // Start polling for progress
+            this.startDownloadPolling();
+        } catch (error) {
+            console.error('Error starting download:', error);
+            alert(i18n.t('updateDownloadFailed') + ': ' + error.message);
+
+            // Reset UI
+            document.getElementById('btnDownloadUpdate').style.display = 'inline-block';
+            document.getElementById('updateDownloadProgress').style.display = 'none';
+        }
+    }
+
+    startDownloadPolling() {
+        // Clear any existing interval
+        if (this.downloadPollInterval) {
+            clearInterval(this.downloadPollInterval);
+        }
+
+        // Poll every second
+        this.downloadPollInterval = setInterval(async () => {
+            try {
+                const status = await API.getDownloadStatus();
+                this.updateDownloadProgress(status);
+
+                if (status.completed) {
+                    this.handleDownloadComplete();
+                } else if (status.error) {
+                    this.handleDownloadFailed(status.error);
+                }
+            } catch (error) {
+                console.error('Error polling download status:', error);
+                clearInterval(this.downloadPollInterval);
+            }
+        }, 1000);
+    }
+
+    updateDownloadProgress(status) {
+        const progressPct = Math.round((status.progress_percent || 0));
+
+        // Update modal progress bar
+        const progressBar = document.getElementById('updateProgressBar');
+        if (progressBar) {
+            progressBar.style.width = progressPct + '%';
+        }
+
+        // Update banner progress
+        const bannerPct = document.getElementById('downloadProgressPct');
+        if (bannerPct) {
+            bannerPct.textContent = progressPct + '%';
+        }
+        const bannerFill = document.getElementById('downloadProgressFill');
+        if (bannerFill) {
+            bannerFill.style.width = progressPct + '%';
+        }
+
+        // Update download details
+        if (status.downloaded_bytes && status.total_bytes) {
+            const downloadedMB = (status.downloaded_bytes / 1024 / 1024).toFixed(1);
+            const totalMB = (status.total_bytes / 1024 / 1024).toFixed(1);
+
+            document.getElementById('downloadedBytes').textContent = downloadedMB + ' MB';
+            document.getElementById('totalBytes').textContent = totalMB + ' MB';
+        }
+    }
+
+    handleDownloadComplete() {
+        // Stop polling
+        clearInterval(this.downloadPollInterval);
+
+        // Update UI
+        document.getElementById('updateStatus').textContent = i18n.t('downloadComplete');
+        document.getElementById('btnInstallUpdate').style.display = 'inline-block';
+
+        // Update banner
+        if (this.updateBannerDownloading) {
+            const message = this.updateBannerDownloading.querySelector('.update-banner-message strong');
+            if (message) {
+                message.textContent = i18n.t('downloadComplete');
+            }
+            this.updateBannerDownloading.classList.add('completed');
+        }
+    }
+
+    handleDownloadFailed(error) {
+        // Stop polling
+        clearInterval(this.downloadPollInterval);
+
+        // Show error
+        alert(i18n.t('updateDownloadFailed') + ': ' + (error || 'Unknown error'));
+
+        // Reset UI
+        document.getElementById('btnDownloadUpdate').style.display = 'inline-block';
+        document.getElementById('updateDownloadProgress').style.display = 'none';
+
+        // Hide downloading banner
+        if (this.updateBannerDownloading) {
+            this.updateBannerDownloading.style.display = 'none';
+        }
+    }
+
+    async installUpdate() {
+        // Confirm with user
+        if (!confirm(i18n.t('installConfirm'))) {
+            return;
+        }
+
+        try {
+            // Update UI
+            document.getElementById('updateStatus').textContent = i18n.t('installingUpdate');
+            document.getElementById('btnInstallUpdate').disabled = true;
+
+            // Call install API (this will restart the app)
+            await API.installUpdate();
+
+            // Show restarting message
+            document.getElementById('updateStatus').textContent = i18n.t('restartingApp');
+
+            // Clear dismissed version (in case update was dismissed before)
+            try {
+                localStorage.removeItem('dismissedUpdateVersion');
+            } catch (error) {
+                console.warn('Failed to clear dismissed version:', error);
+            }
+
+        } catch (error) {
+            console.error('Error installing update:', error);
+            alert(i18n.t('updateInstallFailed') + ': ' + error.message);
+            document.getElementById('btnInstallUpdate').disabled = false;
+        }
+    }
+
+    async loadUpdateBackups() {
+        try {
+            const backups = await API.getUpdateBackups();
+
+            if (!backups || backups.length === 0) {
+                // No backups available, hide section
+                document.getElementById('updateRollbackSection').style.display = 'none';
+                return;
+            }
+
+            // Populate backup list
+            const backupList = document.getElementById('backupList');
+            backupList.innerHTML = backups.map(backup => `
+                <div class="backup-item">
+                    <div class="backup-info">
+                        <strong>Version ${this.escapeHtml(backup.version)}</strong>
+                        <span class="backup-date">${this.formatDate(backup.backup_date)}</span>
+                    </div>
+                    <button class="btn-secondary btn-rollback" data-version="${this.escapeHtml(backup.version)}">
+                        ${i18n.t('rollbackButton')}
+                    </button>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            backupList.querySelectorAll('.btn-rollback').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const version = btn.dataset.version;
+                    this.rollbackToVersion(version);
+                });
+            });
+
+            // Show section
+            document.getElementById('updateRollbackSection').style.display = 'block';
+
+        } catch (error) {
+            console.error('Error loading backups:', error);
+            document.getElementById('updateRollbackSection').style.display = 'none';
+        }
+    }
+
+    async rollbackToVersion(version) {
+        // Confirm with user
+        if (!confirm(i18n.t('rollbackConfirm', { version }))) {
+            return;
+        }
+
+        try {
+            await API.rollbackToVersion(version);
+
+            alert(i18n.t('rollbackSuccess'));
+
+            // App will restart - show message
+            document.getElementById('updateStatus').textContent = i18n.t('restartingApp');
+
+        } catch (error) {
+            console.error('Error rolling back:', error);
+            alert(i18n.t('rollbackFailed') + ': ' + error.message);
+        }
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }
 
