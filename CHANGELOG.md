@@ -6,6 +6,14 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.7] - 2025-12-26
+
+### Verbessert
+- Versionsnummer in Statusleiste jetzt fett dargestellt (bessere Sichtbarkeit)
+
+### Hinweis
+- Test-Release für Update-Mechanismus (v1.1.6 → v1.1.7)
+
 ## [1.1.6] - 2025-12-26
 
 ### Behoben
