@@ -1002,3 +1002,80 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
+
+/* === Color Picker Styles === */
+
+.color-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.suggested-colors {
+    padding: 1rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.suggested-colors-label {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.color-suggestions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.color-suggestion-btn {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.color-suggestion-btn:hover {
+    transform: scale(1.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-suggestion-btn:active {
+    transform: scale(0.95);
+}
+
+.custom-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.custom-color-picker input[type="color"] {
+    width: 60px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+}
+
+.custom-color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+.custom-color-picker input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 2px;
+}
+
+.color-picker-label {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}

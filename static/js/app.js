@@ -487,12 +487,16 @@ class MemDocApp {
         this.btnRemoveCoverImage = document.getElementById('btnRemoveCoverImage');
         this.coverImagePreview = document.getElementById('coverImagePreview');
         this.coverImagePreviewImg = document.getElementById('coverImagePreviewImg');
+        this.coverColorInput = document.getElementById('coverColorInput');
+        this.suggestedColorsContainer = document.getElementById('suggestedColors');
+        this.colorSuggestionsDiv = document.getElementById('colorSuggestions');
 
         // Preview elements
         this.coverPreviewTitle = document.getElementById('coverPreviewTitle');
         this.coverPreviewSubtitle = document.getElementById('coverPreviewSubtitle');
         this.coverPreviewAuthor = document.getElementById('coverPreviewAuthor');
         this.coverPreviewImage = document.getElementById('coverPreviewImage');
+        this.coverPreview = document.getElementById('coverPreview');
 
         // Add event listeners
         document.getElementById('btnCloseCoverModal').addEventListener('click', () => this.closeCoverPageModal());
@@ -507,6 +511,7 @@ class MemDocApp {
         this.coverTitleInput.addEventListener('input', () => this.updateCoverPreview());
         this.coverSubtitleInput.addEventListener('input', () => this.updateCoverPreview());
         this.coverAuthorInput.addEventListener('input', () => this.updateCoverPreview());
+        this.coverColorInput.addEventListener('input', () => this.updateCoverPreview());
     }
 
     async openCoverPageModal() {
@@ -519,6 +524,7 @@ class MemDocApp {
             this.coverTitleInput.value = this.coverData.title || '';
             this.coverSubtitleInput.value = this.coverData.subtitle || '';
             this.coverAuthorInput.value = this.coverData.author || '';
+            this.coverColorInput.value = this.coverData.backgroundColor || '#f5f5f5';
 
             // Load cover image if exists
             if (this.coverData.image) {
@@ -581,6 +587,9 @@ class MemDocApp {
             // Update live preview
             this.coverPreviewImage.style.backgroundImage = `url(${e.target.result})`;
             this.coverPreviewImage.style.display = 'block';
+
+            // Extract and suggest colors
+            this.extractColorsFromImage(e.target.result);
         };
         reader.readAsDataURL(file);
     }
@@ -593,6 +602,9 @@ class MemDocApp {
         this.btnRemoveCoverImage.style.display = 'none';
         this.coverPreviewImage.style.display = 'none';
 
+        // Hide color suggestions
+        this.suggestedColorsContainer.style.display = 'none';
+
         // Mark for deletion if there was an existing image
         if (this.coverData && this.coverData.image) {
             this.coverData.deleteImage = true;
@@ -603,11 +615,15 @@ class MemDocApp {
         const title = this.coverTitleInput.value || i18n.t('coverTitlePlaceholder');
         const subtitle = this.coverSubtitleInput.value;
         const author = this.coverAuthorInput.value || i18n.t('coverAuthorPlaceholder');
+        const backgroundColor = this.coverColorInput.value;
 
         this.coverPreviewTitle.textContent = title;
         this.coverPreviewSubtitle.textContent = subtitle;
         this.coverPreviewSubtitle.style.display = subtitle ? 'block' : 'none';
         this.coverPreviewAuthor.textContent = author;
+
+        // Update background color
+        this.coverPreview.style.background = backgroundColor;
     }
 
     async saveCoverPage() {
@@ -615,7 +631,8 @@ class MemDocApp {
             const coverData = {
                 title: this.coverTitleInput.value,
                 subtitle: this.coverSubtitleInput.value,
-                author: this.coverAuthorInput.value
+                author: this.coverAuthorInput.value,
+                backgroundColor: this.coverColorInput.value
             };
 
             // Upload cover image if selected
@@ -651,6 +668,100 @@ class MemDocApp {
             console.error('Error saving cover:', error);
             alert(i18n.t('failedToSaveCover') + ': ' + error.message);
         }
+    }
+
+    // === Color Extraction Methods ===
+
+    extractColorsFromImage(imageDataUrl) {
+        const img = new Image();
+        img.onload = () => {
+            // Create canvas to extract pixel data
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Resize for faster processing
+            const maxSize = 100;
+            const scale = Math.min(maxSize / img.width, maxSize / img.height);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Get pixel data
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+
+            // Extract dominant colors
+            const colors = this.getDominantColors(pixels, 5);
+
+            // Show suggestions
+            this.showColorSuggestions(colors);
+        };
+        img.src = imageDataUrl;
+    }
+
+    getDominantColors(pixels, count = 5) {
+        const colorMap = {};
+        const step = 4; // Sample every 4th pixel for performance
+
+        // Count colors (simplified - group similar colors)
+        for (let i = 0; i < pixels.length; i += step * 4) {
+            const r = pixels[i];
+            const g = pixels[i + 1];
+            const b = pixels[i + 2];
+            const a = pixels[i + 3];
+
+            // Skip transparent pixels
+            if (a < 128) continue;
+
+            // Quantize color (group similar colors)
+            const qr = Math.round(r / 32) * 32;
+            const qg = Math.round(g / 32) * 32;
+            const qb = Math.round(b / 32) * 32;
+
+            const key = `${qr},${qg},${qb}`;
+            colorMap[key] = (colorMap[key] || 0) + 1;
+        }
+
+        // Sort by frequency
+        const sortedColors = Object.entries(colorMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, count);
+
+        // Convert to hex colors
+        return sortedColors.map(([rgb]) => {
+            const [r, g, b] = rgb.split(',').map(Number);
+            return this.rgbToHex(r, g, b);
+        });
+    }
+
+    rgbToHex(r, g, b) {
+        return '#' + [r, g, b].map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
+    }
+
+    showColorSuggestions(colors) {
+        // Clear previous suggestions
+        this.colorSuggestionsDiv.innerHTML = '';
+
+        // Create color buttons
+        colors.forEach(color => {
+            const button = document.createElement('button');
+            button.className = 'color-suggestion-btn';
+            button.style.backgroundColor = color;
+            button.title = color;
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.coverColorInput.value = color;
+                this.updateCoverPreview();
+            });
+            this.colorSuggestionsDiv.appendChild(button);
+        });
+
+        // Show suggestions
+        this.suggestedColorsContainer.style.display = 'block';
     }
 }
 
