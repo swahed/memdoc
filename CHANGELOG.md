@@ -6,6 +6,13 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.4] - 2025-12-26
+
+### Verbessert
+- Microsoft Edge Unterstützung hinzugefügt (standardmäßig auf Windows installiert)
+- App funktioniert jetzt mit Chrome ODER Edge
+- Automatische Browser-Erkennung mit Fallback zum Standard-Browser
+
 ## [1.1.3] - 2025-12-26
 
 ### Behoben

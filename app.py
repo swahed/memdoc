@@ -899,28 +899,34 @@ def main():
         # Give Flask a moment to start
         time.sleep(2)
 
-        # Find Chrome executable
-        chrome_paths = [
-            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-            os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"),
+        # Find Chrome or Edge executable (Edge is installed by default on Windows)
+        browser_paths = [
+            # Chrome
+            (r"C:\Program Files\Google\Chrome\Application\chrome.exe", "Chrome"),
+            (r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe", "Chrome"),
+            (os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"), "Chrome"),
+            # Edge (installed by default on Windows 10+)
+            (r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", "Edge"),
+            (os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"), "Edge"),
         ]
 
-        chrome_exe = None
-        for path in chrome_paths:
+        browser_exe = None
+        browser_name = None
+        for path, name in browser_paths:
             if os.path.exists(path):
-                chrome_exe = path
+                browser_exe = path
+                browser_name = name
                 break
 
-        if not chrome_exe:
-            print("Chrome not found. Opening in default browser...")
+        if not browser_exe:
+            print("Chrome/Edge not found. Opening in default browser...")
             import webbrowser
             webbrowser.open('http://localhost:5000')
         else:
-            # Open Chrome in app mode (looks like a desktop app)
-            print(f"Opening Chrome in app mode...")
+            # Open browser in app mode (looks like a desktop app)
+            print(f"Opening {browser_name} in app mode...")
             subprocess.Popen([
-                chrome_exe,
+                browser_exe,
                 '--app=http://localhost:5000',
                 f'--window-size=1200,800',
                 '--window-position=100,100'
