@@ -68,13 +68,13 @@ class MemDocApp {
             }
         } catch (error) {
             console.error('Error loading chapters:', error);
-            alert('Failed to load chapters: ' + error.message);
+            alert(i18n.t('failedToLoadChapters') + ': ' + error.message);
         }
     }
 
     renderChapterList() {
         if (this.chapters.length === 0) {
-            this.chapterList.innerHTML = '<p class="empty-state">No chapters yet. Create your first chapter!</p>';
+            this.chapterList.innerHTML = `<p class="empty-state">${i18n.t('noChaptersYet')}</p>`;
             return;
         }
 
@@ -82,32 +82,32 @@ class MemDocApp {
             <div class="chapter-item" data-id="${chapter.id}">
                 <div class="chapter-item-content">
                     <div class="chapter-item-header">
-                        <div class="chapter-item-title">${this.escapeHtml(chapter.title || 'Untitled Chapter')}</div>
+                        <div class="chapter-item-title">${this.escapeHtml(chapter.title || i18n.t('untitledChapter'))}</div>
                         <div class="chapter-item-wordcount">${chapter.wordCount || 0}</div>
                     </div>
                     ${chapter.subtitle ? `<div class="chapter-item-subtitle">${this.escapeHtml(chapter.subtitle)}</div>` : ''}
                 </div>
                 <div class="chapter-item-actions">
                     ${index > 0 ? `
-                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="up" title="Move up">
+                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="up" title="${i18n.t('moveUp')}">
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
                                 <path d="M7 11V3M4 6l3-3 3 3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
                     ` : '<span style="width: 22px"></span>'}
                     ${index < this.chapters.length - 1 ? `
-                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="down" title="Move down">
+                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="down" title="${i18n.t('moveDown')}">
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
                                 <path d="M7 3v8M4 8l3 3 3-3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
                     ` : '<span style="width: 22px"></span>'}
-                    <button class="btn-edit-chapter" data-id="${chapter.id}" title="Edit chapter">
+                    <button class="btn-edit-chapter" data-id="${chapter.id}" title="${i18n.t('editChapter')}">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
                             <path d="M10 1l3 3-7 7H3v-3z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                    <button class="btn-delete-chapter" data-id="${chapter.id}" title="Delete chapter">
+                    <button class="btn-delete-chapter" data-id="${chapter.id}" title="${i18n.t('deleteChapter')}">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
                             <path d="M1 3h12M5 1h4M5 6v4M9 6v4M3 3l1 9h6l1-9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -168,10 +168,10 @@ class MemDocApp {
     }
 
     async handleNewChapter() {
-        const title = prompt('Enter chapter title:');
+        const title = prompt(i18n.t('enterChapterTitle'));
         if (!title) return;
 
-        const subtitle = prompt('Enter chapter subtitle (optional):') || '';
+        const subtitle = prompt(i18n.t('enterChapterSubtitle')) || '';
 
         try {
             const result = await API.createChapter(title, subtitle);
@@ -181,7 +181,7 @@ class MemDocApp {
             this.selectChapter(result.id);
         } catch (error) {
             console.error('Error creating chapter:', error);
-            alert('Failed to create chapter: ' + error.message);
+            alert(i18n.t('failedToCreateChapter') + ': ' + error.message);
         }
     }
 
@@ -193,10 +193,10 @@ class MemDocApp {
             const currentSubtitle = chapter.frontmatter.subtitle || '';
 
             // Prompt for new values
-            const newTitle = prompt('Enter new chapter title:', currentTitle);
+            const newTitle = prompt(i18n.t('enterNewChapterTitle'), currentTitle);
             if (!newTitle) return;  // User cancelled
 
-            const newSubtitle = prompt('Enter new subtitle (optional):', currentSubtitle) || '';
+            const newSubtitle = prompt(i18n.t('enterNewSubtitle'), currentSubtitle) || '';
 
             // Update chapter metadata
             await API.updateChapterMetadata(chapterId, newTitle, newSubtitle);
@@ -215,7 +215,7 @@ class MemDocApp {
             }
         } catch (error) {
             console.error('Error editing chapter:', error);
-            alert('Failed to edit chapter: ' + error.message);
+            alert(i18n.t('failedToEditChapter') + ': ' + error.message);
         }
     }
 
@@ -231,16 +231,16 @@ class MemDocApp {
             }
         } catch (error) {
             console.error('Error reordering chapter:', error);
-            alert('Failed to reorder chapter: ' + error.message);
+            alert(i18n.t('failedToReorderChapter') + ': ' + error.message);
         }
     }
 
     async handleDeleteChapter(chapterId) {
         // Get chapter info for confirmation
         const chapter = this.chapters.find(ch => ch.id === chapterId);
-        const chapterName = chapter ? (chapter.title || 'Untitled Chapter') : 'this chapter';
+        const chapterName = chapter ? (chapter.title || i18n.t('untitledChapter')) : i18n.t('untitledChapter');
 
-        if (!confirm(`Delete "${chapterName}"?\n\nThe chapter will be removed from your memoir, but the file will be saved in the "deleted" folder on your hard drive, so you can recover it if needed.`)) {
+        if (!confirm(`"${chapterName}" ${i18n.t('deleteChapterMessage')}`)) {
             return;
         }
 
@@ -256,7 +256,7 @@ class MemDocApp {
             await this.loadChapters();
         } catch (error) {
             console.error('Error deleting chapter:', error);
-            alert('Failed to delete chapter: ' + error.message);
+            alert(i18n.t('failedToDeleteChapter') + ': ' + error.message);
         }
     }
 
@@ -266,7 +266,7 @@ class MemDocApp {
             this.renderPrompts();
         } catch (error) {
             console.error('Error loading prompts:', error);
-            this.promptsContent.innerHTML = '<p class="loading">Failed to load prompts</p>';
+            this.promptsContent.innerHTML = `<p class="loading">${i18n.t('failedToLoadPrompts')}</p>`;
         }
     }
 
@@ -354,7 +354,7 @@ class MemDocApp {
             this.previewFrame.src = `/api/chapters/${this.editor.currentChapterId}/preview`;
         } catch (error) {
             console.error('Error showing preview:', error);
-            alert('Failed to show preview: ' + error.message);
+            alert(i18n.t('failedToShowPreview') + ': ' + error.message);
             this.closePreview();
         }
     }
@@ -385,10 +385,10 @@ class MemDocApp {
                         // Show helpful modal with installation instructions
                         this.showPDFDependencyError(errorData.message);
                     } else {
-                        alert('Failed to export PDF: ' + errorData.message);
+                        alert(i18n.t('failedToExportPDF') + ': ' + errorData.message);
                     }
                 } else {
-                    alert('Failed to export PDF. Please try again.');
+                    alert(i18n.t('failedToExportPDF') + '. Bitte versuche es erneut.');
                 }
                 return;
             }
@@ -413,10 +413,10 @@ class MemDocApp {
             document.body.removeChild(a);
 
             // Show success message
-            alert('PDF exported successfully! Check your downloads folder.');
+            alert(i18n.t('pdfExportedSuccessfully'));
         } catch (error) {
             console.error('Error exporting PDF:', error);
-            alert('Failed to export PDF: ' + error.message);
+            alert(i18n.t('failedToExportPDF') + ': ' + error.message);
         }
     }
 
@@ -430,7 +430,7 @@ class MemDocApp {
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 600px;">
                     <div class="modal-header">
-                        <h3>PDF Export Not Available</h3>
+                        <h3>${i18n.t('pdfExportNotAvailable')}</h3>
                         <button class="btn-close-modal" id="btnClosePdfError">&times;</button>
                     </div>
                     <div class="modal-body">

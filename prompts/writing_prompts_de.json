@@ -1,0 +1,84 @@
+{
+  "prompts": [
+    {
+      "category": "Kindheit",
+      "questions": [
+        "Was ist deine früheste Erinnerung?",
+        "Beschreibe das Haus oder den Ort, wo du aufgewachsen bist.",
+        "Wer war dein bester Freund als Kind?",
+        "Welche Spiele hast du als Kind gespielt?",
+        "Was war dein Lieblingsessen als Kind?"
+      ]
+    },
+    {
+      "category": "Familie",
+      "questions": [
+        "Beschreibe deine Eltern oder Erziehungsberechtigten.",
+        "Welche Familientraditionen hattet ihr?",
+        "Erzähle eine Geschichte von einem Familientreffen.",
+        "Wer in deiner Familie hat dich am meisten beeinflusst?",
+        "Was hast du von deinen Großeltern gelernt?"
+      ]
+    },
+    {
+      "category": "Bildung",
+      "questions": [
+        "Was war dein Lieblingsfach in der Schule?",
+        "Beschreibe einen Lehrer, der einen Unterschied gemacht hat.",
+        "Was war das Schwierigste, das du gelernt hast?",
+        "Erzähle eine Geschichte aus deiner Schulzeit.",
+        "Welche Fähigkeiten hast du in der Schule entwickelt?"
+      ]
+    },
+    {
+      "category": "Beziehungen",
+      "questions": [
+        "Wie hast du jemand Wichtiges in deinem Leben kennengelernt?",
+        "Beschreibe eine Freundschaft, die dich geprägt hat.",
+        "Was hast du über die Liebe gelernt?",
+        "Erzähle eine Geschichte über eine unerwartete Verbindung.",
+        "Wer war deine größte Stütze?"
+      ]
+    },
+    {
+      "category": "Arbeit & Karriere",
+      "questions": [
+        "Was war dein erster Job?",
+        "Beschreibe einen Karriereerfolg, auf den du stolz bist.",
+        "Welchen Herausforderungen bist du in deiner Arbeit begegnet?",
+        "Wer war ein Mentor oder Kollege, der dir geholfen hat?",
+        "Was hat deine Arbeit dich über dich selbst gelehrt?"
+      ]
+    },
+    {
+      "category": "Wendepunkte",
+      "questions": [
+        "Beschreibe einen Moment, der dein Leben verändert hat.",
+        "Auf welche Entscheidung bist du am stolzesten?",
+        "Erzähle von einer Zeit, als du eine Herausforderung gemeistert hast.",
+        "Welches Ereignis hat geprägt, wer du heute bist?",
+        "Wann hast du deine Leidenschaft oder deinen Sinn entdeckt?"
+      ]
+    },
+    {
+      "category": "Lektionen & Weisheit",
+      "questions": [
+        "Was ist die wichtigste Lektion, die du gelernt hast?",
+        "Welchen Rat würdest du deinem jüngeren Ich geben?",
+        "Was wünschst du dir, dass jeder wüsste?",
+        "Was hast du über Glück gelernt?",
+        "Was ist dir jetzt am wichtigsten?"
+      ]
+    },
+    {
+      "category": "Erinnerungen & Momente",
+      "questions": [
+        "Beschreibe einen perfekten Tag aus deiner Vergangenheit.",
+        "Was ist ein kleiner Moment, den du schätzt?",
+        "Erzähle von einer Zeit, als du gelacht hast, bis du geweint hast.",
+        "Was ist ein Ort, der eine besondere Bedeutung hat?",
+        "Beschreibe eine sensorische Erinnerung (Geruch, Klang, Geschmack)."
+      ]
+    }
+  ]
+}

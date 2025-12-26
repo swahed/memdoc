@@ -32,7 +32,51 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 2: Enhanced Writing & Organization
+## Phase 2: Localization & Cover Page 🎯 CURRENT PRIORITY
+**Goal: Make the app ready for mom to use with German UI and cover page**
+
+### Features
+- [ ] German localization
+  - Translate all UI elements (buttons, labels, messages)
+  - Translate writing prompts
+  - German date/time formatting
+- [ ] Cover page generation
+  - UI to enter cover details (title, author, subtitle)
+  - Optional cover image upload
+  - Live preview of cover page
+  - Display cover page when opening memoir
+
+**Deliverable:** Fully German interface with professional cover page.
+
+**Status:** In Progress - Highest priority for stable release
+
+---
+
+## Phase 3: Deployment & Data Management
+**Goal: Safe distribution and updates for mom**
+
+### Features
+- [ ] Configurable data storage location
+  - Let user choose data folder outside repo
+  - OneDrive backup instructions
+  - Data migration tool
+- [ ] Update mechanism
+  - Check for updates from GitHub releases
+  - In-app update button
+  - Automatic data backup before update
+  - Safety mechanisms to prevent data loss
+- [ ] Release process
+  - GitHub releases for stable versions
+  - Version numbering
+  - Release notes in German
+
+**Deliverable:** Mom can safely install, update, and backup her work.
+
+**Status:** Next priority after Phase 2
+
+---
+
+## Phase 4: Enhanced Writing & Organization
 **Goal: Add tools that make writing easier**
 
 ### Features
@@ -42,10 +86,6 @@ Build in phases, delivering working functionality at each stage. Each phase shou
   - Syntax highlighting for markdown
   - Options: EasyMDE (split-pane), Tiptap (inline), or custom lightweight solution
 - [ ] Event tagging system (inline event markers with dates)
-- [ ] Writing prompts improvements
-  - Better categorization
-  - Search/filter functionality
-  - Random prompt suggestions
 - [ ] Full-text search across all chapters
 - [ ] Chapter navigation/outline view
 - [ ] Enhanced word count statistics
@@ -56,7 +96,7 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 3: Images & Media ✅ COMPLETE
+## Phase 5: Images & Media ✅ COMPLETE
 **Goal: Support visual storytelling**
 
 ### Features
@@ -81,7 +121,7 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 4: Timeline Generation
+## Phase 6: Timeline Generation
 **Goal: Automatic chronological overview**
 
 ### Features
@@ -97,7 +137,7 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 5: Export & Publishing (PARTIALLY COMPLETE)
+## Phase 7: Export & Publishing (DEFERRED)
 **Goal: Professional-quality output**
 
 ### Chapter-Level Export (✅ Complete)
@@ -107,25 +147,21 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 - [x] Professional fonts (Georgia serif, Helvetica headings)
 - [x] Image support in export (all positions and sizes)
 
-### Full Memoir Export (Future)
-- [ ] Cover page generation
-  - Front cover with title, author, optional cover image
-  - Back cover with memoir description/summary
-  - Simple separate PDF approach initially (front.pdf, back.pdf)
-  - Cover image upload and positioning support
+### Full Memoir Export (Deferred)
 - [ ] Automatic table of contents
 - [ ] Page numbering across chapters
-- [ ] Export entire memoir as one PDF
+- [ ] Export entire memoir as one PDF (with cover page)
+- [ ] Professional PDF generation via WeasyPrint
 
-**Deliverable:** Chapter preview and export working. ✅
+**Deliverable:** Chapter preview works. ✅
 
-**Status:** Chapter-level preview/export complete. Full memoir export deferred.
+**Status:** Browser print functionality sufficient for now. Full PDF export deferred to later phase.
 
-**Note:** PDF export requires GTK libraries on Windows. Preview in browser works on all platforms.
+**Note:** Users can print individual chapters using browser's print-to-PDF feature.
 
 ---
 
-## Phase 6: Desktop Experience
+## Phase 8: Desktop Experience
 **Goal: Native application feel**
 
 ### Features
@@ -145,14 +181,18 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 **Nice-to-have features for later consideration**
 
 ### Possible Features
+- [ ] AI-assisted writing features
+  - Smart writing prompts based on context
+  - Grammar and style suggestions
+  - Story arc analysis
+  - **Note:** Needs more conceptual work, privacy considerations
+  - Must be opt-in with clear data handling
 - [ ] Multiple memoir projects support
 - [ ] Export to EPUB format
 - [ ] Advanced image editing (crop, rotate)
 - [ ] Spell check integration
 - [ ] Version history/snapshots
-- [ ] Print directly from app
 - [ ] Custom themes/typography options
-- [ ] AI-assisted writing prompts (using API, privacy-aware)
 - [ ] Collaboration features (comments, suggestions)
 - [ ] Audio recording integration (oral history)
 
@@ -170,25 +210,32 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ## Dependencies Between Phases
 
-- Phase 1 → Required for all others
-- Phase 2 → Independent, can be built anytime after Phase 1
-- Phase 3 → Independent, but needed before Phase 5 (PDF export)
-- Phase 4 → Requires event tagging from Phase 2
-- Phase 5 → Should be last major feature (depends on 1, 3, 4)
-- Phase 6 → Can be done anytime, just wraps existing functionality
+- Phase 1 → Required for all others ✅
+- Phase 2 → Localization + Cover (current priority) 🎯
+- Phase 3 → Deployment (needs Phase 2 complete)
+- Phase 4 → Enhanced writing (independent)
+- Phase 5 → Images ✅ (complete)
+- Phase 6 → Timeline (needs event tagging from Phase 4)
+- Phase 7 → PDF export (deferred)
+- Phase 8 → Desktop wrapper (can be done anytime)
 
 ## Current Status
 
-**Active Phase:** Phase 1 - MVP (Mostly Complete)
-**Completed:**
-- ✅ Project structure and dependencies
-- ✅ Basic Flask/Eel app with iA Writer-inspired UI
-- ✅ Chapter management (create, edit, delete, reorder)
-- ✅ Auto-save to markdown files
-- ✅ Writing prompts sidebar
-- ✅ File persistence in OneDrive-synced folder
+**Active Phase:** Phase 2 - Localization & Cover Page 🎯
 
-**Next Up When Resuming:**
-- **PRIORITY**: Add unit tests and end-to-end tests before continuing development
-- Complete remaining Phase 1 features (markdown formatting)
-- Begin Phase 2 (event tagging, timeline, search)
+**Completed Phases:**
+- ✅ Phase 1: MVP - Core writing experience with tests
+- ✅ Phase 5: Images & Media with quality checks
+
+**Current Work:**
+1. German UI translation (all elements + prompts)
+2. Cover page generation with preview
+3. Individual commits for each feature
+
+**Next Up:**
+- Phase 3: Deployment mechanism and data management
+- Phase 4: Enhanced writing tools (WYSIWYG, search, etc.)
+
+**Testing Status:**
+- ✅ 50 unit tests, 62% overall coverage, 96% on critical modules
+- Testing strategy: Test and commit each feature individually

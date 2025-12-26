@@ -144,7 +144,7 @@ class Editor {
         } catch (error) {
             console.error('Error loading chapter:', error);
             this.setSaveStatus('error');
-            alert('Failed to load chapter: ' + error.message);
+            alert(i18n.t('failedToLoadChapter') + ': ' + error.message);
         }
     }
 
@@ -209,27 +209,27 @@ class Editor {
         switch (status) {
             case 'saving':
                 this.saveStatus.classList.add('saving');
-                this.saveStatus.textContent = 'Saving...';
+                this.saveStatus.textContent = i18n.t('statusSaving');
                 break;
             case 'saved':
                 this.saveStatus.classList.add('saved');
-                this.saveStatus.textContent = 'Saved';
+                this.saveStatus.textContent = i18n.t('statusSaved');
                 break;
             case 'error':
-                this.saveStatus.textContent = 'Error saving';
+                this.saveStatus.textContent = i18n.t('statusError');
                 break;
             case 'loading':
-                this.saveStatus.textContent = 'Loading...';
+                this.saveStatus.textContent = i18n.t('statusLoading');
                 break;
             default:
-                this.saveStatus.textContent = 'Ready';
+                this.saveStatus.textContent = i18n.t('statusReady');
         }
     }
 
     updateWordCount() {
         const text = this.editor.value.trim();
         const words = text ? text.split(/\s+/).length : 0;
-        this.wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+        this.wordCount.textContent = i18n.wordCount(words);
     }
 
     getContent() {
@@ -253,11 +253,11 @@ class Editor {
     }
 
     formatBold() {
-        this.wrapSelection('**', '**', 'bold text');
+        this.wrapSelection('**', '**', i18n.t('boldTextPlaceholder'));
     }
 
     formatItalic() {
-        this.wrapSelection('*', '*', 'italic text');
+        this.wrapSelection('*', '*', i18n.t('italicTextPlaceholder'));
     }
 
     clearFormatting() {
@@ -304,7 +304,12 @@ class Editor {
 
     formatHeading(level) {
         const prefix = '#'.repeat(level) + ' ';
-        this.insertAtLineStart(prefix, 'Heading ' + level);
+        const placeholders = {
+            1: i18n.t('heading1Placeholder'),
+            2: i18n.t('heading2Placeholder'),
+            3: i18n.t('heading3Placeholder')
+        };
+        this.insertAtLineStart(prefix, placeholders[level] || 'Heading ' + level);
     }
 
     wrapSelection(before, after, placeholder) {
@@ -466,14 +471,14 @@ class Editor {
     async handleImageFile(file) {
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file (JPG, PNG, GIF, WebP)');
+            alert(i18n.t('pleaseSelectImageFile'));
             return;
         }
 
         // Validate file size (20MB max)
         const maxSize = 20 * 1024 * 1024;
         if (file.size > maxSize) {
-            alert('Image file is too large. Maximum size is 20MB.');
+            alert(i18n.t('imageTooLarge'));
             return;
         }
 
@@ -499,11 +504,11 @@ class Editor {
                 this.currentImageData = result.data;
                 this.showImagePreview(file, result.data);
             } else {
-                alert('Failed to upload image: ' + result.message);
+                alert(i18n.t('failedToUploadImage') + ': ' + result.message);
             }
         } catch (error) {
             console.error('Error uploading image:', error);
-            alert('Failed to upload image: ' + error.message);
+            alert(i18n.t('failedToUploadImage') + ': ' + error.message);
         }
     }
 
@@ -548,12 +553,12 @@ class Editor {
         if (!imageData.resolution_ok) {
             const resolutionWarning = document.createElement('div');
             resolutionWarning.className = 'warning-item warning-error';
-            resolutionWarning.textContent = '⚠️ Low resolution! Image may not print well. Minimum 300 DPI recommended.';
+            resolutionWarning.textContent = '⚠️ ' + i18n.t('lowResolutionWarning');
             warningsContainer.insertBefore(resolutionWarning, warningsContainer.firstChild);
         } else {
             const resolutionSuccess = document.createElement('div');
             resolutionSuccess.className = 'warning-item warning-success';
-            resolutionSuccess.textContent = '✓ Good quality for printing';
+            resolutionSuccess.textContent = '✓ ' + i18n.t('goodQualityForPrinting');
             warningsContainer.appendChild(resolutionSuccess);
         }
 

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MemDoc - Memoir Writing</title>
+    <title>MemDoc - Memoiren schreiben</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -13,11 +13,11 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h1 class="app-title">MemDoc</h1>
-                <button class="btn-new-chapter" id="btnNewChapter">+ New Chapter</button>
+                <button class="btn-new-chapter" id="btnNewChapter">+ Neues Kapitel</button>
             </div>
 
             <nav class="chapter-list" id="chapterList">
-                <p class="empty-state">No chapters yet. Create your first chapter!</p>
+                <p class="empty-state">Noch keine Kapitel. Erstelle dein erstes Kapitel!</p>
             </nav>
         </aside>
 
@@ -29,53 +29,53 @@
                     type="text"
                     class="chapter-title-input"
                     id="chapterTitle"
-                    placeholder="Chapter Title"
+                    placeholder="Kapiteltitel"
                     disabled
                 />
                 <input
                     type="text"
                     class="chapter-subtitle-input"
                     id="chapterSubtitle"
-                    placeholder="Subtitle (optional)"
+                    placeholder="Untertitel (optional)"
                     disabled
                 />
             </header>
 
             <!-- Formatting Toolbar -->
             <div class="formatting-toolbar" id="formattingToolbar">
-                <button class="format-btn" id="btnBold" title="Bold (Ctrl+B)" disabled>
+                <button class="format-btn" id="btnBold" title="Fett (Strg+B)" disabled>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M4 2h5a3 3 0 0 1 0 6H4zm0 6h6a3 3 0 0 1 0 6H4z"/>
                     </svg>
                 </button>
-                <button class="format-btn" id="btnItalic" title="Italic (Ctrl+I)" disabled>
+                <button class="format-btn" id="btnItalic" title="Kursiv (Strg+I)" disabled>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M10 2h4l-6 12H4l6-12z"/>
                     </svg>
                 </button>
-                <button class="format-btn" id="btnClearFormat" title="Remove formatting" disabled>
+                <button class="format-btn" id="btnClearFormat" title="Formatierung entfernen" disabled>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="3" y1="3" x2="13" y2="13"/>
                         <line x1="13" y1="3" x2="3" y2="13"/>
                     </svg>
                 </button>
                 <div class="toolbar-separator"></div>
-                <button class="format-btn" id="btnH1" title="Heading 1" disabled>H1</button>
-                <button class="format-btn" id="btnH2" title="Heading 2" disabled>H2</button>
-                <button class="format-btn" id="btnH3" title="Heading 3" disabled>H3</button>
+                <button class="format-btn" id="btnH1" title="Überschrift 1" disabled>H1</button>
+                <button class="format-btn" id="btnH2" title="Überschrift 2" disabled>H2</button>
+                <button class="format-btn" id="btnH3" title="Überschrift 3" disabled>H3</button>
                 <div class="toolbar-separator"></div>
-                <button class="format-btn" id="btnInsertImage" title="Insert image" disabled>
+                <button class="format-btn" id="btnInsertImage" title="Bild einfügen" disabled>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm11 1H3v6.5l2.5-2.5 1.5 1.5 3-3 3 3V4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
                     </svg>
                 </button>
                 <div class="toolbar-separator"></div>
-                <button class="format-btn" id="btnPreview" title="Preview chapter" disabled>
+                <button class="format-btn" id="btnPreview" title="Kapitel-Vorschau" disabled>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M8 2c3.5 0 6.5 2.5 8 6-1.5 3.5-4.5 6-8 6s-6.5-2.5-8-6c1.5-3.5 4.5-6 8-6zm0 10c2 0 3.5-1.5 3.5-3.5S10 5 8 5 4.5 6.5 4.5 8.5 6 12 8 12zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/>
                     </svg>
                 </button>
-                <button class="format-btn" id="btnExportPDF" title="Export to PDF" disabled>
+                <button class="format-btn" id="btnExportPDF" title="Als PDF exportieren" disabled>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M8 10l-4-4h3V2h2v4h3l-4 4zm6 2v2H2v-2h1v1h10v-1h1z"/>
                     </svg>
@@ -87,37 +87,37 @@
                 <textarea
                     class="markdown-editor"
                     id="editor"
-                    placeholder="Start writing your memoir...
+                    placeholder="Beginne deine Memoiren zu schreiben...
 
-You can use basic formatting:
-**bold** for bold text
-*italic* for italic text
-# Heading for section headers"
+Du kannst einfache Formatierung verwenden:
+**fett** für fetten Text
+*kursiv* für kursiven Text
+# Überschrift für Abschnittsüberschriften"
                     disabled
                 ></textarea>
             </div>
 
             <!-- Status Bar -->
             <footer class="status-bar">
-                <span class="status-indicator" id="saveStatus">Ready</span>
-                <span class="word-count" id="wordCount">0 words</span>
+                <span class="status-indicator" id="saveStatus">Bereit</span>
+                <span class="word-count" id="wordCount">0 Wörter</span>
             </footer>
         </main>
 
         <!-- Writing Prompts Sidebar -->
         <aside class="prompts-sidebar" id="promptsSidebar">
             <div class="prompts-header">
-                <h3>Writing Prompts</h3>
+                <h3>Schreibanregungen</h3>
                 <button class="btn-close-prompts" id="btnClosePrompts">&times;</button>
             </div>
             <div class="prompts-content" id="promptsContent">
-                <p class="loading">Loading prompts...</p>
+                <p class="loading">Lade Schreibanregungen...</p>
             </div>
         </aside>
     </div>
 
     <!-- Toggle Prompts Button (Fixed) -->
-    <button class="btn-toggle-prompts" id="btnTogglePrompts" title="Toggle writing prompts">
+    <button class="btn-toggle-prompts" id="btnTogglePrompts" title="Schreibanregungen ein-/ausblenden">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
             <path d="M3 10h14M3 5h14M3 15h14" stroke-width="2" stroke-linecap="round"/>
         </svg>
@@ -127,7 +127,7 @@ You can use basic formatting:
     <div class="modal-overlay" id="imageUploadModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Insert Image</h3>
+                <h3>Bild einfügen</h3>
                 <button class="btn-close-modal" id="btnCloseImageModal">&times;</button>
             </div>
 
@@ -137,25 +137,25 @@ You can use basic formatting:
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
                     </svg>
-                    <p>Drag image here or click to browse</p>
-                    <p class="upload-hint">JPG, PNG, GIF, WebP - Max 20MB</p>
+                    <p>Bild hierher ziehen oder klicken zum Durchsuchen</p>
+                    <p class="upload-hint">JPG, PNG, GIF, WebP - Max. 20MB</p>
                     <input type="file" accept="image/*" id="imageFileInput" hidden>
                 </div>
 
                 <!-- Preview area (hidden initially) -->
                 <div class="upload-preview" id="uploadPreview" hidden>
-                    <img id="previewImage" src="" alt="Preview">
+                    <img id="previewImage" src="" alt="Vorschau">
 
                     <!-- Image info -->
                     <div class="image-info">
                         <div class="info-row">
-                            <strong>File:</strong> <span id="infoFilename"></span>
+                            <strong>Datei:</strong> <span id="infoFilename"></span>
                         </div>
                         <div class="info-row">
-                            <strong>Size:</strong> <span id="infoFileSize"></span>
+                            <strong>Größe:</strong> <span id="infoFileSize"></span>
                         </div>
                         <div class="info-row">
-                            <strong>Dimensions:</strong> <span id="infoDimensions"></span>
+                            <strong>Abmessungen:</strong> <span id="infoDimensions"></span>
                         </div>
                     </div>
 
@@ -167,37 +167,37 @@ You can use basic formatting:
                         <div class="option-group">
                             <label for="imagePosition">Position:</label>
                             <select id="imagePosition">
-                                <option value="center">Center</option>
-                                <option value="left">Left (text wraps)</option>
-                                <option value="right">Right (text wraps)</option>
-                                <option value="full">Full width</option>
+                                <option value="center">Zentriert</option>
+                                <option value="left">Links (Text umfließt)</option>
+                                <option value="right">Rechts (Text umfließt)</option>
+                                <option value="full">Volle Breite</option>
                             </select>
                         </div>
 
                         <div class="option-group">
-                            <label for="imageSize">Display Size:</label>
+                            <label for="imageSize">Anzeigegröße:</label>
                             <select id="imageSize">
-                                <option value="small">Small (300px)</option>
-                                <option value="medium" selected>Medium (500px)</option>
-                                <option value="large">Large (700px)</option>
-                                <option value="full">Full width</option>
+                                <option value="small">Klein (300px)</option>
+                                <option value="medium" selected>Mittel (500px)</option>
+                                <option value="large">Groß (700px)</option>
+                                <option value="full">Volle Breite</option>
                             </select>
                         </div>
 
                         <div class="option-group full-width">
-                            <label for="imageCaption">Caption (optional):</label>
-                            <input type="text" id="imageCaption" placeholder="Describe the photo...">
+                            <label for="imageCaption">Bildunterschrift (optional):</label>
+                            <input type="text" id="imageCaption" placeholder="Beschreibe das Foto...">
                         </div>
                     </div>
 
                     <!-- Helpful tips -->
                     <div class="image-tips">
-                        <h4>💡 Tips for Best Results:</h4>
+                        <h4>💡 Tipps für beste Ergebnisse:</h4>
                         <ul>
-                            <li>Use original photos from camera/scanner (not screenshots)</li>
-                            <li>Aim for at least 1500 pixels wide for good print quality</li>
-                            <li>Medium size (500px) works well for most memoir photos</li>
-                            <li>JPG format is best for photos, PNG for diagrams</li>
+                            <li>Verwende Originalfotos von Kamera/Scanner (keine Screenshots)</li>
+                            <li>Ziele auf mindestens 1500 Pixel Breite für gute Druckqualität</li>
+                            <li>Mittlere Größe (500px) funktioniert gut für die meisten Memoiren-Fotos</li>
+                            <li>JPG-Format ist am besten für Fotos, PNG für Diagramme</li>
                         </ul>
                     </div>
                 </div>
@@ -205,8 +205,8 @@ You can use basic formatting:
 
             <!-- Modal actions -->
             <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancelUpload">Cancel</button>
-                <button class="btn-primary" id="btnInsertImageToEditor" disabled>Insert Image</button>
+                <button class="btn-secondary" id="btnCancelUpload">Abbrechen</button>
+                <button class="btn-primary" id="btnInsertImageToEditor" disabled>Bild einfügen</button>
             </div>
         </div>
     </div>
@@ -215,7 +215,7 @@ You can use basic formatting:
     <div class="modal-overlay" id="previewModal">
         <div class="modal-content preview-modal-content">
             <div class="modal-header">
-                <h3>Chapter Preview</h3>
+                <h3>Kapitel-Vorschau</h3>
                 <button class="btn-close-modal" id="btnClosePreview">&times;</button>
             </div>
 
@@ -224,12 +224,13 @@ You can use basic formatting:
             </div>
 
             <div class="modal-actions">
-                <button class="btn-secondary" id="btnClosePreviewBottom">Close</button>
-                <button class="btn-primary" id="btnExportFromPreview">Export to PDF</button>
+                <button class="btn-secondary" id="btnClosePreviewBottom">Schließen</button>
+                <button class="btn-primary" id="btnExportFromPreview">Als PDF exportieren</button>
             </div>
         </div>
     </div>
 
+    <script src="/static/js/i18n.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/editor.js"></script>
     <script src="/static/js/app.js"></script>

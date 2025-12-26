@@ -134,9 +134,9 @@ def delete_chapter(chapter_id):
 
 @app.route('/api/prompts', methods=['GET'])
 def get_prompts():
-    """Get writing prompts."""
+    """Get writing prompts (German)."""
     try:
-        prompts_file = Path('prompts/writing_prompts.json')
+        prompts_file = Path('prompts/writing_prompts_de.json')
         with open(prompts_file, 'r', encoding='utf-8') as f:
             prompts = json.load(f)
         return jsonify({'status': 'success', 'data': prompts})
