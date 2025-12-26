@@ -13,7 +13,14 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h1 class="app-title">MemDoc</h1>
-                <button class="btn-new-chapter" id="btnNewChapter">+ Neues Kapitel</button>
+                <div class="sidebar-header-buttons">
+                    <button class="btn-cover-page" id="btnCoverPage" title="Titelseite bearbeiten">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M2 2h12v12H2V2zm1 1v10h10V3H3zm2 2h6v1H5V5zm0 2h6v1H5V7zm0 2h4v1H5V9z"/>
+                        </svg>
+                    </button>
+                    <button class="btn-new-chapter" id="btnNewChapter">+ Neues Kapitel</button>
+                </div>
             </div>
 
             <nav class="chapter-list" id="chapterList">
@@ -226,6 +233,67 @@ Du kannst einfache Formatierung verwenden:
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnClosePreviewBottom">Schließen</button>
                 <button class="btn-primary" id="btnExportFromPreview">Als PDF exportieren</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cover Page Modal -->
+    <div class="modal-overlay" id="coverPageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Titelseite bearbeiten</h3>
+                <button class="btn-close-modal" id="btnCloseCoverModal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="cover-editor">
+                    <div class="form-group">
+                        <label for="coverTitleInput">Titel</label>
+                        <input type="text" id="coverTitleInput" class="form-input" placeholder="Titel deiner Memoiren">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="coverSubtitleInput">Untertitel</label>
+                        <input type="text" id="coverSubtitleInput" class="form-input" placeholder="Untertitel (optional)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="coverAuthorInput">Autor</label>
+                        <input type="text" id="coverAuthorInput" class="form-input" placeholder="Dein Name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Titelbild (optional)</label>
+                        <div class="cover-image-upload">
+                            <input type="file" id="coverImageInput" accept="image/*" hidden>
+                            <button class="btn-secondary" id="btnChooseCoverImage">Titelbild wählen</button>
+                            <button class="btn-secondary" id="btnRemoveCoverImage" style="display: none;">Titelbild entfernen</button>
+                        </div>
+                        <div id="coverImagePreview" class="cover-image-preview" style="display: none;">
+                            <img id="coverImagePreviewImg" src="" alt="Titelbild">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Preview -->
+                <div class="cover-preview-container">
+                    <h4>Vorschau</h4>
+                    <div class="cover-preview" id="coverPreview">
+                        <div class="cover-preview-content">
+                            <div id="coverPreviewImage" class="cover-preview-image" style="display: none;"></div>
+                            <div class="cover-preview-text">
+                                <h1 id="coverPreviewTitle" class="cover-preview-title">Titel deiner Memoiren</h1>
+                                <h2 id="coverPreviewSubtitle" class="cover-preview-subtitle"></h2>
+                                <p id="coverPreviewAuthor" class="cover-preview-author">Dein Name</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btnCancelCover">Abbrechen</button>
+                <button class="btn-primary" id="btnSaveCover">Speichern</button>
             </div>
         </div>
     </div>

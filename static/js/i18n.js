@@ -134,7 +134,25 @@ Du kannst einfache Formatierung verwenden:
 
             // Formatting placeholders
             boldTextPlaceholder: 'fetter Text',
-            italicTextPlaceholder: 'kursiver Text'
+            italicTextPlaceholder: 'kursiver Text',
+
+            // Cover page
+            coverPage: 'Titelseite',
+            editCoverPage: 'Titelseite bearbeiten',
+            coverTitle: 'Titel',
+            coverTitlePlaceholder: 'Titel deiner Memoiren',
+            coverSubtitle: 'Untertitel',
+            coverSubtitlePlaceholder: 'Untertitel (optional)',
+            coverAuthor: 'Autor',
+            coverAuthorPlaceholder: 'Dein Name',
+            coverImage: 'Titelbild (optional)',
+            chooseCoverImage: 'Titelbild wählen',
+            removeCoverImage: 'Titelbild entfernen',
+            previewCover: 'Vorschau',
+            saveCover: 'Speichern',
+            coverSaved: 'Titelseite gespeichert!',
+            failedToSaveCover: 'Fehler beim Speichern der Titelseite',
+            failedToLoadCover: 'Fehler beim Laden der Titelseite'
         }
     },
 

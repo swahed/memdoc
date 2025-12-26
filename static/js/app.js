@@ -8,6 +8,8 @@ class MemDocApp {
         this.editor = new Editor();
         this.chapters = [];
         this.prompts = null;
+        this.coverData = null;
+        this.coverImageFile = null;
 
         // Get DOM elements
         this.chapterList = document.getElementById('chapterList');
@@ -24,6 +26,7 @@ class MemDocApp {
         this.setupEventListeners();
         this.setupEditorCallbacks();
         this.setupPreviewExport();
+        this.setupCoverPage();
         await this.loadChapters();
         await this.loadPrompts();
     }
@@ -51,6 +54,9 @@ class MemDocApp {
     setupEventListeners() {
         // New chapter button
         this.btnNewChapter.addEventListener('click', () => this.handleNewChapter());
+
+        // Cover page button
+        document.getElementById('btnCoverPage').addEventListener('click', () => this.openCoverPageModal());
 
         // Toggle prompts sidebar
         this.btnTogglePrompts.addEventListener('click', () => this.togglePromptsSidebar());
@@ -466,6 +472,185 @@ class MemDocApp {
 
         // Show modal
         modal.classList.add('visible');
+    }
+
+    // === Cover Page Methods ===
+
+    setupCoverPage() {
+        // Get DOM elements
+        this.coverModal = document.getElementById('coverPageModal');
+        this.coverTitleInput = document.getElementById('coverTitleInput');
+        this.coverSubtitleInput = document.getElementById('coverSubtitleInput');
+        this.coverAuthorInput = document.getElementById('coverAuthorInput');
+        this.coverImageInput = document.getElementById('coverImageInput');
+        this.btnChooseCoverImage = document.getElementById('btnChooseCoverImage');
+        this.btnRemoveCoverImage = document.getElementById('btnRemoveCoverImage');
+        this.coverImagePreview = document.getElementById('coverImagePreview');
+        this.coverImagePreviewImg = document.getElementById('coverImagePreviewImg');
+
+        // Preview elements
+        this.coverPreviewTitle = document.getElementById('coverPreviewTitle');
+        this.coverPreviewSubtitle = document.getElementById('coverPreviewSubtitle');
+        this.coverPreviewAuthor = document.getElementById('coverPreviewAuthor');
+        this.coverPreviewImage = document.getElementById('coverPreviewImage');
+
+        // Add event listeners
+        document.getElementById('btnCloseCoverModal').addEventListener('click', () => this.closeCoverPageModal());
+        document.getElementById('btnCancelCover').addEventListener('click', () => this.closeCoverPageModal());
+        document.getElementById('btnSaveCover').addEventListener('click', () => this.saveCoverPage());
+
+        this.btnChooseCoverImage.addEventListener('click', () => this.coverImageInput.click());
+        this.btnRemoveCoverImage.addEventListener('click', () => this.removeCoverImage());
+        this.coverImageInput.addEventListener('change', (e) => this.handleCoverImageSelect(e));
+
+        // Live preview updates
+        this.coverTitleInput.addEventListener('input', () => this.updateCoverPreview());
+        this.coverSubtitleInput.addEventListener('input', () => this.updateCoverPreview());
+        this.coverAuthorInput.addEventListener('input', () => this.updateCoverPreview());
+    }
+
+    async openCoverPageModal() {
+        try {
+            // Load current cover data
+            const memoir = await API.getMemoir();
+            this.coverData = memoir.cover || {};
+
+            // Populate form
+            this.coverTitleInput.value = this.coverData.title || '';
+            this.coverSubtitleInput.value = this.coverData.subtitle || '';
+            this.coverAuthorInput.value = this.coverData.author || '';
+
+            // Load cover image if exists
+            if (this.coverData.image) {
+                // Extract filename from path (e.g., "data/images/photo.jpg" -> "photo.jpg")
+                const filename = this.coverData.image.split('/').pop();
+                const imagePath = `/api/images/${filename}`;
+
+                this.coverImagePreviewImg.src = imagePath;
+                this.coverImagePreview.style.display = 'block';
+                this.btnChooseCoverImage.style.display = 'none';
+                this.btnRemoveCoverImage.style.display = 'inline-block';
+
+                // Update preview
+                this.coverPreviewImage.style.backgroundImage = `url(${imagePath})`;
+                this.coverPreviewImage.style.display = 'block';
+            } else {
+                this.coverImageFile = null;
+                this.coverImagePreview.style.display = 'none';
+                this.btnChooseCoverImage.style.display = 'inline-block';
+                this.btnRemoveCoverImage.style.display = 'none';
+                this.coverPreviewImage.style.display = 'none';
+            }
+
+            // Update preview
+            this.updateCoverPreview();
+
+            // Show modal
+            this.coverModal.classList.add('visible');
+        } catch (error) {
+            console.error('Error loading cover data:', error);
+            alert(i18n.t('failedToLoadCover') + ': ' + error.message);
+        }
+    }
+
+    closeCoverPageModal() {
+        this.coverModal.classList.remove('visible');
+        this.coverImageFile = null;
+    }
+
+    handleCoverImageSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate image
+        if (!file.type.startsWith('image/')) {
+            alert(i18n.t('pleaseSelectImageFile'));
+            return;
+        }
+
+        this.coverImageFile = file;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.coverImagePreviewImg.src = e.target.result;
+            this.coverImagePreview.style.display = 'block';
+            this.btnChooseCoverImage.style.display = 'none';
+            this.btnRemoveCoverImage.style.display = 'inline-block';
+
+            // Update live preview
+            this.coverPreviewImage.style.backgroundImage = `url(${e.target.result})`;
+            this.coverPreviewImage.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    removeCoverImage() {
+        this.coverImageFile = null;
+        this.coverImageInput.value = '';
+        this.coverImagePreview.style.display = 'none';
+        this.btnChooseCoverImage.style.display = 'inline-block';
+        this.btnRemoveCoverImage.style.display = 'none';
+        this.coverPreviewImage.style.display = 'none';
+
+        // Mark for deletion if there was an existing image
+        if (this.coverData && this.coverData.image) {
+            this.coverData.deleteImage = true;
+        }
+    }
+
+    updateCoverPreview() {
+        const title = this.coverTitleInput.value || i18n.t('coverTitlePlaceholder');
+        const subtitle = this.coverSubtitleInput.value;
+        const author = this.coverAuthorInput.value || i18n.t('coverAuthorPlaceholder');
+
+        this.coverPreviewTitle.textContent = title;
+        this.coverPreviewSubtitle.textContent = subtitle;
+        this.coverPreviewSubtitle.style.display = subtitle ? 'block' : 'none';
+        this.coverPreviewAuthor.textContent = author;
+    }
+
+    async saveCoverPage() {
+        try {
+            const coverData = {
+                title: this.coverTitleInput.value,
+                subtitle: this.coverSubtitleInput.value,
+                author: this.coverAuthorInput.value
+            };
+
+            // Upload cover image if selected
+            if (this.coverImageFile) {
+                const formData = new FormData();
+                formData.append('file', this.coverImageFile);
+
+                const uploadResponse = await fetch('/api/images/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const uploadResult = await uploadResponse.json();
+                if (uploadResult.status === 'success') {
+                    coverData.image = uploadResult.data.path;
+                } else {
+                    throw new Error('Failed to upload cover image');
+                }
+            } else if (this.coverData && this.coverData.deleteImage) {
+                // Remove image
+                coverData.image = null;
+            } else if (this.coverData && this.coverData.image) {
+                // Keep existing image
+                coverData.image = this.coverData.image;
+            }
+
+            // Save cover data
+            await API.updateCover(coverData);
+
+            alert(i18n.t('coverSaved'));
+            this.closeCoverPageModal();
+        } catch (error) {
+            console.error('Error saving cover:', error);
+            alert(i18n.t('failedToSaveCover') + ': ' + error.message);
+        }
     }
 }
 

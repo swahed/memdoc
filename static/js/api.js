@@ -156,5 +156,19 @@ const API = {
             throw new Error(data.message);
         }
         return data.data;
+    },
+
+    /**
+     * Update cover page data
+     */
+    async updateCover(coverData) {
+        // Get current memoir data
+        const memoir = await this.getMemoir();
+
+        // Update cover section
+        memoir.cover = coverData;
+
+        // Save memoir metadata
+        return await this.updateMemoir(memoir);
     }
 };
