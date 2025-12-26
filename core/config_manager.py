@@ -3,6 +3,9 @@ Configuration Management Module
 
 Manages application configuration stored in ~/.memdoc/config.json
 Handles data directory path configuration and validation.
+
+Test builds use a separate configuration and data directory to prevent
+accidental use of production memoir data.
 """
 
 import json
@@ -11,15 +14,31 @@ from pathlib import Path
 from typing import Dict, Tuple
 from datetime import datetime
 
+# Import test build detection
+try:
+    from core.version import IS_TEST_BUILD, TEST_BUILD_BRANCH
+except ImportError:
+    # Fallback if version module not available yet
+    IS_TEST_BUILD = False
+    TEST_BUILD_BRANCH = 'unknown'
+
 
 def get_config_path() -> Path:
     """
     Get the path to the application config file.
 
+    Test builds use a separate config location to isolate from production.
+
     Returns:
-        Path to ~/.memdoc/config.json
+        Path to config.json (production or test location)
     """
-    return Path.home() / ".memdoc" / "config.json"
+    if IS_TEST_BUILD:
+        # Test builds: %APPDATA%/MemDoc-Test/config.json
+        appdata = os.getenv('APPDATA', str(Path.home()))
+        return Path(appdata) / 'MemDoc-Test' / 'config.json'
+    else:
+        # Production: ~/.memdoc/config.json
+        return Path.home() / ".memdoc" / "config.json"
 
 
 def get_default_config() -> Dict:
@@ -188,12 +207,24 @@ def get_data_dir() -> Path:
     """
     Get the configured data directory path.
 
+    Test builds are hardcoded to use %APPDATA%/MemDoc-Test/data/
+    to prevent accidental access to production memoir data.
+
     Returns:
         Path to the data directory
     """
-    config = load_config()
-    data_dir_str = config.get("data_directory", "data")
-    return Path(data_dir_str).resolve()
+    if IS_TEST_BUILD:
+        # Test builds: ALWAYS use hardcoded test directory
+        # This cannot be configured - it's a safety feature
+        appdata = os.getenv('APPDATA', str(Path.home()))
+        test_dir = Path(appdata) / 'MemDoc-Test' / 'data'
+        test_dir.mkdir(parents=True, exist_ok=True)
+        return test_dir
+    else:
+        # Production: use configured path
+        config = load_config()
+        data_dir_str = config.get("data_directory", "data")
+        return Path(data_dir_str).resolve()
 
 
 def get_directory_size(path: Path) -> int:

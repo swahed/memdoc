@@ -45,6 +45,21 @@ body {
     overflow: hidden;
 }
 
+/* === Test Build Warning Banner === */
+.test-build-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #fee;
+    color: #c00;
+    padding: 8px 16px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 2px solid #c00;
+    z-index: 9999;
+}
+
 /* === App Layout === */
 .app-container {
     display: flex;

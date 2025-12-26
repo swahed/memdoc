@@ -1,0 +1,37 @@
+{
+  "author": "Sam Chen",
+  "chapters": [
+    {
+      "file": "ch001-the-beginning-one-succulent.md",
+      "id": "ch001",
+      "order": 1
+    },
+    {
+      "file": "ch002-the-multiplication.md",
+      "id": "ch002",
+      "order": 2
+    },
+    {
+      "file": "ch003-the-great-fungus-gnat-incident.md",
+      "id": "ch003",
+      "order": 3
+    },
+    {
+      "file": "ch004-peak-plant-parent.md",
+      "id": "ch004",
+      "order": 4
+    },
+    {
+      "file": "ch005-acceptance-and-growth.md",
+      "id": "ch005",
+      "order": 5
+    }
+  ],
+  "cover": {
+    "title": "How I Accidentally Became a Plant Parent",
+    "subtitle": "A Journey from One Succulent to Total Plant Obsession",
+    "author": "Sam Chen",
+    "image": "../images/zimmerpflanzen-standort-2.jpg"
+  },
+  "title": "How I Accidentally Became a Plant Parent"
+}

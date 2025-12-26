@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+    <!-- Test Build Warning Banner -->
+    {% if is_test_build %}
+    <div class="test-build-warning">
+        ⚠️ TEST VERSION - Using sample data only (Branch: {{ test_build_branch }})
+    </div>
+    {% endif %}
+
     <!-- Main Container -->
     <div class="app-container">
         <!-- Sidebar - Chapter Navigation -->

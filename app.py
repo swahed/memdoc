@@ -15,6 +15,14 @@ from core.config_manager import (
     get_data_dir, get_directory_size, count_files
 )
 from core.data_migrator import migrate_data_directory
+from core.version import get_window_title, IS_TEST_BUILD, TEST_BUILD_BRANCH, VERSION
+
+# Import Eel for desktop mode
+try:
+    import eel
+    EEL_AVAILABLE = True
+except ImportError:
+    EEL_AVAILABLE = False
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
@@ -26,7 +34,12 @@ memoir_handler = None
 @app.route('/')
 def index():
     """Render the main editor interface."""
-    return render_template('index.html')
+    return render_template(
+        'index.html',
+        is_test_build=IS_TEST_BUILD,
+        test_build_branch=TEST_BUILD_BRANCH,
+        version=VERSION
+    )
 
 
 @app.route('/api/memoir', methods=['GET'])
@@ -578,6 +591,227 @@ def browse_folder():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+# ===== Update Mechanism Endpoints =====
+
+# Global state for tracking download progress
+download_state = {
+    'in_progress': False,
+    'downloaded_bytes': 0,
+    'total_bytes': 0,
+    'downloaded_file': None,
+    'error': None
+}
+
+
+@app.route('/api/version', methods=['GET'])
+def get_version():
+    """Get current version information."""
+    return jsonify({
+        'status': 'success',
+        'data': {
+            'version': VERSION,
+            'is_test_build': IS_TEST_BUILD,
+            'test_build_branch': TEST_BUILD_BRANCH if IS_TEST_BUILD else None
+        }
+    })
+
+
+@app.route('/api/updates/check', methods=['GET'])
+def check_updates():
+    """Check for available updates from GitHub Releases."""
+    try:
+        from core.updater import check_for_updates
+        update_info = check_for_updates()
+
+        return jsonify({
+            'status': 'success',
+            'data': update_info
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/updates/download', methods=['POST'])
+def start_download_update():
+    """Start downloading an update in the background."""
+    global download_state
+
+    try:
+        # Check if already downloading
+        if download_state['in_progress']:
+            return jsonify({
+                'status': 'error',
+                'message': 'Download already in progress'
+            }), 400
+
+        # Get download URL from request
+        data = request.json
+        download_url = data.get('download_url')
+
+        if not download_url:
+            return jsonify({
+                'status': 'error',
+                'message': 'No download URL provided'
+            }), 400
+
+        # Reset download state
+        download_state = {
+            'in_progress': True,
+            'downloaded_bytes': 0,
+            'total_bytes': 0,
+            'downloaded_file': None,
+            'error': None
+        }
+
+        # Progress callback
+        def progress_callback(downloaded, total):
+            download_state['downloaded_bytes'] = downloaded
+            download_state['total_bytes'] = total
+
+        # Start download in background thread
+        import threading
+        from core.updater import download_update
+
+        def download_thread():
+            success, file_path, error = download_update(download_url, progress_callback)
+            download_state['in_progress'] = False
+            if success:
+                download_state['downloaded_file'] = str(file_path)
+            else:
+                download_state['error'] = error
+
+        thread = threading.Thread(target=download_thread, daemon=True)
+        thread.start()
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Download started'
+        })
+
+    except Exception as e:
+        download_state['in_progress'] = False
+        download_state['error'] = str(e)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/updates/download/status', methods=['GET'])
+def get_download_status():
+    """Get the current download progress."""
+    global download_state
+
+    return jsonify({
+        'status': 'success',
+        'data': {
+            'in_progress': download_state['in_progress'],
+            'downloaded_bytes': download_state['downloaded_bytes'],
+            'total_bytes': download_state['total_bytes'],
+            'progress_percent': (
+                int((download_state['downloaded_bytes'] / download_state['total_bytes']) * 100)
+                if download_state['total_bytes'] > 0 else 0
+            ),
+            'completed': not download_state['in_progress'] and download_state['downloaded_file'] is not None,
+            'error': download_state['error']
+        }
+    })
+
+
+@app.route('/api/updates/install', methods=['POST'])
+def install_update():
+    """Install the downloaded update (requires restart)."""
+    global download_state
+
+    try:
+        # Check if we have a downloaded file
+        if not download_state['downloaded_file']:
+            return jsonify({
+                'status': 'error',
+                'message': 'No update has been downloaded'
+            }), 400
+
+        downloaded_file = Path(download_state['downloaded_file'])
+
+        if not downloaded_file.exists():
+            return jsonify({
+                'status': 'error',
+                'message': 'Downloaded file not found'
+            }), 400
+
+        # Backup current version
+        from core.updater import backup_current_version, apply_update
+
+        success, error = backup_current_version()
+        if not success:
+            return jsonify({
+                'status': 'error',
+                'message': f'Backup failed: {error}'
+            }), 500
+
+        # Apply update (this will trigger app restart)
+        success, error = apply_update(downloaded_file)
+        if not success:
+            return jsonify({
+                'status': 'error',
+                'message': f'Update installation failed: {error}'
+            }), 500
+
+        # If we get here, update script is launched
+        # App will exit soon, this response may not be received
+        return jsonify({
+            'status': 'success',
+            'message': 'Update is being installed, app will restart...'
+        })
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/updates/backups', methods=['GET'])
+def list_backups():
+    """List all available backup versions."""
+    try:
+        from core.updater import list_available_backups
+        backups = list_available_backups()
+
+        return jsonify({
+            'status': 'success',
+            'data': backups
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/updates/rollback', methods=['POST'])
+def rollback_update():
+    """Rollback to a previous version."""
+    try:
+        data = request.json
+        backup_version = data.get('version')
+
+        if not backup_version:
+            return jsonify({
+                'status': 'error',
+                'message': 'No version specified'
+            }), 400
+
+        from core.updater import rollback_to_version
+
+        success, error = rollback_to_version(backup_version)
+        if not success:
+            return jsonify({
+                'status': 'error',
+                'message': f'Rollback failed: {error}'
+            }), 500
+
+        # Rollback uses same update mechanism, so app will restart
+        return jsonify({
+            'status': 'success',
+            'message': f'Rolling back to v{backup_version}, app will restart...'
+        })
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 # ===== Application Initialization =====
 
 def initialize_memoir_handler():
@@ -622,14 +856,50 @@ def main():
         print("\nPress Ctrl+C to stop the server\n")
         app.run(host='localhost', port=5000, debug=debug_mode)
     else:
-        # TODO: Run with Eel for desktop mode
+        # Desktop mode with Eel
+        if not EEL_AVAILABLE:
+            print("\n" + "="*50)
+            print("ERROR: Eel not available")
+            print("="*50)
+            print("\nEel is required for desktop mode.")
+            print("Install with: pip install eel")
+            print("\nOr run in browser mode:")
+            print("  python app.py --browser")
+            print("="*50 + "\n")
+            sys.exit(1)
+
         print("\n" + "="*50)
-        print("MemDoc - Memoir Documentation Tool")
+        print(f"{get_window_title()}")
         print("="*50)
-        print("\nDesktop mode not yet implemented.")
-        print("Please run with --browser flag for now:")
-        print("  python app.py --browser")
+        print(f"\nData directory: {memoir_handler.data_dir}")
+        if IS_TEST_BUILD:
+            print(f"\n⚠️  TEST BUILD - Branch: {TEST_BUILD_BRANCH}")
+            print("Using sample data from: %APPDATA%/MemDoc-Test/data/")
+        print("\nStarting desktop application...")
         print("="*50 + "\n")
+
+        # Initialize Eel with Flask app
+        eel.init('templates')
+
+        # Start Eel with Flask app integration
+        try:
+            eel.start(
+                'index.html',
+                mode='chrome',  # Use Chrome app mode
+                host='localhost',
+                port=5000,
+                size=(1200, 800),
+                position=(100, 100),
+                disable_cache=debug_mode,
+                app=app  # Pass Flask app to Eel
+            )
+        except (SystemExit, KeyboardInterrupt):
+            print("\nShutting down...")
+        except Exception as e:
+            print(f"\nError starting desktop mode: {e}")
+            print("Try running in browser mode:")
+            print("  python app.py --browser")
+            sys.exit(1)
 
 
 if __name__ == '__main__':

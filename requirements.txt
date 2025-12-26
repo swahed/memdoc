@@ -9,14 +9,18 @@ markdown2==2.4.12
 # Note: These may require build tools on Windows
 # For now, basic memoir writing works without them
 
-# Desktop mode (Phase 6)
-# Eel==0.16.0
+# Desktop mode (Phase 3)
+Eel==0.16.0
 
 # PDF Generation (Phase 5)
 WeasyPrint==67.0
 
 # Image Processing (Phase 3)
 Pillow==12.0.0
+
+# Update mechanism (Phase 3)
+requests==2.31.0
+packaging==23.2
 
 # Development & Testing
 pytest==7.4.3
