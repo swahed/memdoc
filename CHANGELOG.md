@@ -6,11 +6,20 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.3] - 2025-12-26
+
+### Behoben
+- Desktop-Modus komplett überarbeitet: Eel entfernt, Chrome direkt mit --app Flag geöffnet
+- "Not Found" Fehler endgültig behoben
+- Einfachere und zuverlässigere Desktop-Integration
+
+### Geändert
+- Eel-Abhängigkeit entfernt (nicht mehr benötigt)
+
 ## [1.1.2] - 2025-12-26
 
 ### Behoben
 - Eel-Flask Integration: eel.start() verwendet jetzt URL-Route statt Dateiname
-- "Not Found" Fehler vollständig behoben
 
 ## [1.1.1] - 2025-12-26
 

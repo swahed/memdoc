@@ -9,9 +9,6 @@ markdown2==2.4.12
 # Note: These may require build tools on Windows
 # For now, basic memoir writing works without them
 
-# Desktop mode (Phase 3)
-Eel==0.16.0
-
 # PDF Generation (Phase 5)
 WeasyPrint==67.0
 

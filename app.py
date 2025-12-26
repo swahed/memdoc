@@ -18,13 +18,6 @@ from core.config_manager import (
 from core.data_migrator import migrate_data_directory
 from core.version import get_window_title, IS_TEST_BUILD, TEST_BUILD_BRANCH, VERSION
 
-# Import Eel for desktop mode
-try:
-    import eel
-    EEL_AVAILABLE = True
-except ImportError:
-    EEL_AVAILABLE = False
-
 
 # ===== PyInstaller Path Handling =====
 def get_resource_path(relative_path):
@@ -881,18 +874,7 @@ def main():
         print("\nPress Ctrl+C to stop the server\n")
         app.run(host='localhost', port=5000, debug=debug_mode)
     else:
-        # Desktop mode with Eel
-        if not EEL_AVAILABLE:
-            print("\n" + "="*50)
-            print("ERROR: Eel not available")
-            print("="*50)
-            print("\nEel is required for desktop mode.")
-            print("Install with: pip install eel")
-            print("\nOr run in browser mode:")
-            print("  python app.py --browser")
-            print("="*50 + "\n")
-            sys.exit(1)
-
+        # Desktop mode - Flask + Chrome app mode
         print("\n" + "="*50)
         print(f"{get_window_title()}")
         print("="*50)
@@ -903,31 +885,58 @@ def main():
         print("\nStarting desktop application...")
         print("="*50 + "\n")
 
-        # Initialize Eel with static files (Eel needs this even when using Flask)
-        # When app=app is passed, Flask handles all routing, Eel just wraps it
-        static_path = get_resource_path('static')
-        eel.init(str(static_path))
+        # Start Flask in a background thread
+        import threading
+        import subprocess
+        import time
 
-        # Start Eel with Flask app integration
-        # Use '/' to let Flask's @app.route('/') handle the index page
+        server_thread = threading.Thread(
+            target=lambda: app.run(host='localhost', port=5000, debug=False, use_reloader=False),
+            daemon=True
+        )
+        server_thread.start()
+
+        # Give Flask a moment to start
+        time.sleep(2)
+
+        # Find Chrome executable
+        chrome_paths = [
+            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+            os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"),
+        ]
+
+        chrome_exe = None
+        for path in chrome_paths:
+            if os.path.exists(path):
+                chrome_exe = path
+                break
+
+        if not chrome_exe:
+            print("Chrome not found. Opening in default browser...")
+            import webbrowser
+            webbrowser.open('http://localhost:5000')
+        else:
+            # Open Chrome in app mode (looks like a desktop app)
+            print(f"Opening Chrome in app mode...")
+            subprocess.Popen([
+                chrome_exe,
+                '--app=http://localhost:5000',
+                f'--window-size=1200,800',
+                '--window-position=100,100'
+            ])
+
+        print("\nMemDoc is running!")
+        print("Close the browser window to exit.\n")
+
+        # Keep the server running
         try:
-            eel.start(
-                '/',  # URL route handled by Flask, not a filename
-                mode='chrome',  # Use Chrome app mode
-                host='localhost',
-                port=5000,
-                size=(1200, 800),
-                position=(100, 100),
-                disable_cache=debug_mode,
-                app=app  # Pass Flask app to Eel - Flask handles all routing
-            )
+            while True:
+                time.sleep(1)
         except (SystemExit, KeyboardInterrupt):
             print("\nShutting down...")
         except Exception as e:
-            print(f"\nError starting desktop mode: {e}")
-            print("Try running in browser mode:")
-            print("  python app.py --browser")
-            sys.exit(1)
+            print(f"\nError: {e}")
 
 
 if __name__ == '__main__':

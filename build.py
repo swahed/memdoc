@@ -60,8 +60,6 @@ def get_hidden_imports():
         list: Hidden import module names
     """
     return [
-        'eel',
-        'bottle',  # Eel dependency
         'jinja2',  # Flask dependency
         'markupsafe',  # Jinja2 dependency
         'PIL',  # Pillow
