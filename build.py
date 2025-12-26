@@ -135,7 +135,7 @@ def build_executable():
     try:
         PyInstaller.__main__.run(args)
         print("\n" + "=" * 60)
-        print(f"✅ Build successful: dist/{exe_name}.exe")
+        print(f"Build successful: dist/{exe_name}.exe")
         print("=" * 60)
 
         # Print build info
@@ -146,14 +146,14 @@ def build_executable():
 
             if is_test:
                 print()
-                print("⚠️  TEST BUILD - This executable will:")
+                print("WARNING: TEST BUILD - This executable will:")
                 print(f"   - Show '[TEST BUILD - Branch: {branch}]' in window title (RED)")
                 print("   - Use %APPDATA%/MemDoc-Test/ for data (isolated)")
                 print("   - Pre-load sample memoir data on first launch")
                 print("   - Cannot access production memoir data")
 
     except Exception as e:
-        print(f"\n❌ Build failed: {e}", file=sys.stderr)
+        print(f"\nBuild failed: {e}", file=sys.stderr)
         sys.exit(1)
 
 
