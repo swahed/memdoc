@@ -58,6 +58,9 @@ class MemDocApp {
         // Cover page button
         document.getElementById('btnCoverPage').addEventListener('click', () => this.openCoverPageModal());
 
+        // Settings button
+        document.getElementById('btnSettings').addEventListener('click', () => this.openSettingsModal());
+
         // Full memoir preview button
         document.getElementById('btnFullPreview').addEventListener('click', () => this.showMemoirPreview());
 
@@ -706,6 +709,233 @@ class MemDocApp {
         } catch (error) {
             console.error('Error saving cover:', error);
             alert(i18n.t('failedToSaveCover') + ': ' + error.message);
+        }
+    }
+
+    // === Settings Modal Methods ===
+
+    async openSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        await this.loadSettings();
+        modal.classList.add('visible');
+
+        // Setup event listeners
+        document.getElementById('btnCloseSettings').addEventListener('click', () => this.closeSettingsModal());
+        document.getElementById('btnCancelSettings').addEventListener('click', () => this.closeSettingsModal());
+        document.getElementById('btnBrowseFolder').addEventListener('click', () => this.browseFolder());
+        document.getElementById('btnStartMigration').addEventListener('click', () => this.startMigration());
+    }
+
+    closeSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.classList.remove('visible');
+
+        // Reset UI
+        document.getElementById('newDataPath').value = '';
+        document.getElementById('pathValidationResult').innerHTML = '';
+        document.getElementById('migrationOptions').style.display = 'none';
+        document.getElementById('migrationProgress').style.display = 'none';
+    }
+
+    async loadSettings() {
+        try {
+            const settings = await API.getSettings();
+
+            document.getElementById('currentDataPath').textContent = settings.data_directory;
+            document.getElementById('dataSize').textContent = `${settings.data_size_mb.toFixed(2)} MB`;
+            document.getElementById('fileCount').textContent = settings.file_count;
+        } catch (error) {
+            console.error('Error loading settings:', error);
+            alert('Fehler beim Laden der Einstellungen: ' + error.message);
+        }
+    }
+
+    async browseFolder() {
+        try {
+            // Get current path as initial directory
+            const pathInput = document.getElementById('newDataPath');
+            const currentPath = pathInput.value.trim() || null;
+
+            // Call API to open folder picker for PARENT directory
+            const result = await API.browseFolder(currentPath);
+
+            if (result.status === 'success' && result.path) {
+                // Store parent path and show subfolder prompt
+                this.selectedParentFolder = result.path;
+                this.showSubfolderPrompt();
+            }
+            // If cancelled, do nothing
+        } catch (error) {
+            console.error('Error opening folder picker:', error);
+            alert('Fehler beim Öffnen des Dateiauswahldialogs: ' + error.message);
+        }
+    }
+
+    showSubfolderPrompt() {
+        const modal = document.getElementById('subfolderPrompt');
+        const parentPathDisplay = document.getElementById('selectedParentPath');
+        const subfolderInput = document.getElementById('subfolderName');
+        const previewCode = document.getElementById('fullPathPreview');
+
+        // Show parent path
+        parentPathDisplay.textContent = this.selectedParentFolder;
+
+        // Reset to default subfolder name
+        subfolderInput.value = 'MemDoc';
+
+        // Update preview
+        const updatePreview = () => {
+            const subfolder = subfolderInput.value.trim() || 'MemDoc';
+            const separator = this.selectedParentFolder.includes('\\') ? '\\' : '/';
+            previewCode.textContent = `${this.selectedParentFolder}${separator}${subfolder}`;
+        };
+        updatePreview();
+
+        // Update preview on input
+        subfolderInput.oninput = updatePreview;
+
+        // Show modal
+        modal.style.display = 'flex';
+
+        // Focus input and select text
+        setTimeout(() => {
+            subfolderInput.focus();
+            subfolderInput.select();
+        }, 100);
+
+        // Setup event listeners
+        document.getElementById('btnCancelSubfolder').onclick = () => this.closeSubfolderPrompt();
+        document.getElementById('btnConfirmSubfolder').onclick = () => this.confirmSubfolder();
+
+        // Allow Enter key to confirm
+        subfolderInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                this.confirmSubfolder();
+            } else if (e.key === 'Escape') {
+                this.closeSubfolderPrompt();
+            }
+        };
+    }
+
+    closeSubfolderPrompt() {
+        const modal = document.getElementById('subfolderPrompt');
+        modal.style.display = 'none';
+        this.selectedParentFolder = null;
+    }
+
+    confirmSubfolder() {
+        const subfolderInput = document.getElementById('subfolderName');
+        const subfolder = subfolderInput.value.trim() || 'MemDoc';
+        const separator = this.selectedParentFolder.includes('\\') ? '\\' : '/';
+        const fullPath = `${this.selectedParentFolder}${separator}${subfolder}`;
+
+        // Update the path input field
+        const pathInput = document.getElementById('newDataPath');
+        pathInput.value = fullPath;
+
+        // Clear any previous validation results
+        const resultDiv = document.getElementById('pathValidationResult');
+        resultDiv.textContent = '';
+        resultDiv.className = 'validation-message';
+
+        // Enable migrate button (will auto-validate on click)
+        const migrateButton = document.getElementById('btnStartMigration');
+        migrateButton.disabled = false;
+        migrateButton.title = 'Daten zu diesem Ordner verschieben (validiert automatisch)';
+
+        // Close the prompt
+        this.closeSubfolderPrompt();
+    }
+
+    async validateNewPath() {
+        const pathInput = document.getElementById('newDataPath');
+        const path = pathInput.value.trim();
+        const resultDiv = document.getElementById('pathValidationResult');
+        const migrateButton = document.getElementById('btnStartMigration');
+
+        if (!path) {
+            resultDiv.innerHTML = '<span class="error">Bitte gib einen Pfad ein</span>';
+            resultDiv.className = 'validation-message error';
+            migrateButton.disabled = true;
+            migrateButton.title = 'Bitte erst einen Ordner auswählen';
+            return false;
+        }
+
+        try {
+            resultDiv.innerHTML = '<span class="loading">Prüfe Pfad...</span>';
+            resultDiv.className = 'validation-message loading';
+
+            const result = await API.validateDataPath(path);
+
+            if (result.is_valid) {
+                resultDiv.innerHTML = `<span class="success">✓ ${result.message}</span>`;
+                resultDiv.className = 'validation-message success';
+                migrateButton.disabled = false;
+                migrateButton.title = 'Daten zu diesem Ordner verschieben';
+                return true;
+            } else {
+                resultDiv.innerHTML = `<span class="error">✗ ${result.message}</span>`;
+                resultDiv.className = 'validation-message error';
+                migrateButton.disabled = true;
+                migrateButton.title = `Pfad ungültig: ${result.message}`;
+                return false;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `<span class="error">Fehler: ${error.message}</span>`;
+            resultDiv.className = 'validation-message error';
+            migrateButton.disabled = true;
+            migrateButton.title = 'Fehler bei der Validierung';
+            return false;
+        }
+    }
+
+    async startMigration() {
+        const path = document.getElementById('newDataPath').value.trim();
+        const keepBackup = document.getElementById('keepBackup').checked;
+        const progressDiv = document.getElementById('migrationProgress');
+        const optionsDiv = document.getElementById('migrationOptions');
+        const resultDiv = document.getElementById('pathValidationResult');
+
+        // Always validate first
+        resultDiv.innerHTML = '<span class="loading">Prüfe Pfad...</span>';
+        resultDiv.className = 'validation-message loading';
+
+        const isValid = await this.validateNewPath();
+        if (!isValid) {
+            return;
+        }
+
+        if (!confirm(
+            'Möchtest du deine Memoiren wirklich verschieben?\n\n' +
+            `Neuer Speicherort: ${path}\n` +
+            `Backup behalten: ${keepBackup ? 'Ja' : 'Nein'}\n\n` +
+            'Die Anwendung wird nach dem Verschieben neu gestartet.'
+        )) {
+            return;
+        }
+
+        try {
+            optionsDiv.style.display = 'none';
+            progressDiv.style.display = 'block';
+
+            document.getElementById('migrationStatus').textContent = 'Verschiebe Dateien...';
+            document.getElementById('migrationProgressBar').style.width = '50%';
+
+            const result = await API.migrateData(path, keepBackup);
+
+            document.getElementById('migrationProgressBar').style.width = '100%';
+            document.getElementById('migrationStatus').textContent =
+                `Erfolgreich! ${result.files_copied} Dateien kopiert. Starte neu...`;
+
+            // Wait 2 seconds then reload
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+
+        } catch (error) {
+            progressDiv.style.display = 'none';
+            optionsDiv.style.display = 'block';
+            alert('Migration fehlgeschlagen: ' + error.message);
         }
     }
 

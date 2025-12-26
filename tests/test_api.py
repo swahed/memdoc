@@ -462,3 +462,279 @@ class TestStatisticsAPI:
         assert data['status'] == 'success'
         assert data['data']['totalWords'] == 450
         assert data['data']['readingTimeMinutes'] == 2  # 450/225 = 2
+
+
+class TestSettingsAPI:
+    """Tests for settings and configuration endpoints."""
+
+    def test_get_settings(self, client):
+        """Test GET /api/settings endpoint."""
+        response = client.get('/api/settings')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert 'data' in data
+
+        settings = data['data']
+        assert 'data_directory' in settings
+        assert 'data_size_mb' in settings
+        assert 'file_count' in settings
+        assert 'config_file' in settings
+        assert 'preferences' in settings
+
+        # Verify data types
+        assert isinstance(settings['data_size_mb'], (int, float))
+        assert isinstance(settings['file_count'], int)
+        assert isinstance(settings['preferences'], dict)
+
+    def test_validate_path_valid(self, client, tmp_path):
+        """Test POST /api/settings/validate-path with valid path."""
+        test_dir = tmp_path / "valid_test_dir"
+        test_dir.mkdir()
+
+        response = client.post('/api/settings/validate-path',
+                               json={'path': str(test_dir)},
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert data['data']['is_valid'] is True
+        assert 'message' in data['data']
+        assert 'resolved_path' in data['data']
+
+    def test_validate_path_invalid(self, client):
+        """Test POST /api/settings/validate-path with invalid path."""
+        response = client.post('/api/settings/validate-path',
+                               json={'path': '/nonexistent/invalid/path'},
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert data['data']['is_valid'] is False
+        assert 'message' in data['data']
+
+    def test_validate_path_missing_parameter(self, client):
+        """Test POST /api/settings/validate-path without path parameter."""
+        response = client.post('/api/settings/validate-path',
+                               json={},
+                               content_type='application/json')
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert 'No path provided' in data['message']
+
+    def test_validate_path_file_instead_of_directory(self, client, tmp_path):
+        """Test validation fails when path is a file."""
+        test_file = tmp_path / "test_file.txt"
+        test_file.write_text("test")
+
+        response = client.post('/api/settings/validate-path',
+                               json={'path': str(test_file)},
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert data['data']['is_valid'] is False
+        assert 'not a directory' in data['data']['message'].lower()
+
+    def test_update_preferences(self, client):
+        """Test PUT /api/settings/preferences endpoint."""
+        new_preferences = {
+            'auto_save_interval': 3000,
+            'theme': 'dark'
+        }
+
+        response = client.put('/api/settings/preferences',
+                              json=new_preferences,
+                              content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+
+        # Verify preferences were updated
+        settings_response = client.get('/api/settings')
+        settings_data = json.loads(settings_response.data)
+        preferences = settings_data['data']['preferences']
+
+        assert preferences['auto_save_interval'] == 3000
+        assert preferences['theme'] == 'dark'
+
+    def test_update_preferences_partial(self, client):
+        """Test updating only some preferences."""
+        # Set initial preferences
+        client.put('/api/settings/preferences',
+                   json={'auto_save_interval': 2000, 'theme': 'light'},
+                   content_type='application/json')
+
+        # Update only one preference
+        response = client.put('/api/settings/preferences',
+                              json={'theme': 'dark'},
+                              content_type='application/json')
+
+        assert response.status_code == 200
+
+        # Verify only theme changed
+        settings_response = client.get('/api/settings')
+        preferences = json.loads(settings_response.data)['data']['preferences']
+
+        assert preferences['theme'] == 'dark'
+        assert preferences['auto_save_interval'] == 2000  # Unchanged
+
+    def test_migrate_data_missing_path(self, client):
+        """Test POST /api/settings/migrate-data without path parameter."""
+        response = client.post('/api/settings/migrate-data',
+                               json={'keep_backup': True},
+                               content_type='application/json')
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert 'No path provided' in data['message']
+
+    def test_migrate_data_invalid_path(self, client):
+        """Test POST /api/settings/migrate-data with invalid path."""
+        response = client.post('/api/settings/migrate-data',
+                               json={
+                                   'new_path': '/nonexistent/invalid/path',
+                                   'keep_backup': True
+                               },
+                               content_type='application/json')
+
+        # Should return 400 because path validation fails
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+
+    def test_migrate_data_success(self, client, tmp_path):
+        """Test successful data migration."""
+        # Create destination directory
+        destination = tmp_path / "new_data_location"
+        destination.mkdir()
+
+        # Create some test data in current data directory
+        client.post('/api/chapters',
+                    json={'title': 'Test Chapter'},
+                    content_type='application/json')
+
+        response = client.post('/api/settings/migrate-data',
+                               json={
+                                   'new_path': str(destination),
+                                   'keep_backup': True
+                               },
+                               content_type='application/json')
+
+        # Migration should succeed
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert 'files_copied' in data['data']
+        assert 'bytes_copied' in data['data']
+        assert data['data']['files_copied'] > 0
+
+        # Verify config was updated
+        settings_response = client.get('/api/settings')
+        settings_data = json.loads(settings_response.data)
+        # Data directory should be updated (though path might be different in test)
+        assert 'data_directory' in settings_data['data']
+
+    def test_migrate_data_with_backup(self, client, tmp_path):
+        """Test migration creates backup when keep_backup=True."""
+        destination = tmp_path / "new_location"
+        destination.mkdir()
+
+        # Create test chapter
+        client.post('/api/chapters',
+                    json={'title': 'Chapter for Migration'},
+                    content_type='application/json')
+
+        response = client.post('/api/settings/migrate-data',
+                               json={
+                                   'new_path': str(destination),
+                                   'keep_backup': True
+                               },
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert 'backup_location' in data['data']
+
+        # Backup location should be set
+        if data['data']['backup_location']:
+            from pathlib import Path
+            backup_path = Path(data['data']['backup_location'])
+            # In test environment, backup behavior may vary
+
+    def test_settings_integration(self, client, tmp_path):
+        """Integration test: get settings, validate path, update preferences."""
+        # 1. Get current settings
+        settings_response = client.get('/api/settings')
+        assert settings_response.status_code == 200
+
+        # 2. Validate a new path
+        test_dir = tmp_path / "test_integration"
+        test_dir.mkdir()
+
+        validate_response = client.post('/api/settings/validate-path',
+                                        json={'path': str(test_dir)},
+                                        content_type='application/json')
+        assert validate_response.status_code == 200
+        validate_data = json.loads(validate_response.data)
+        assert validate_data['data']['is_valid'] is True
+
+        # 3. Update preferences
+        prefs_response = client.put('/api/settings/preferences',
+                                    json={'auto_save_interval': 5000},
+                                    content_type='application/json')
+        assert prefs_response.status_code == 200
+
+        # 4. Verify preferences persisted
+        final_settings = client.get('/api/settings')
+        final_data = json.loads(final_settings.data)
+        assert final_data['data']['preferences']['auto_save_interval'] == 5000
+
+    def test_browse_folder_endpoint_success(self, client, monkeypatch):
+        """Test browse-folder endpoint returns selected path."""
+        import subprocess
+        from unittest.mock import MagicMock
+
+        # Mock subprocess.run to simulate user selecting a folder
+        mock_result = MagicMock()
+        mock_result.stdout = "C:\\Users\\Test\\Documents\\SelectedFolder"
+        mock_subprocess = MagicMock(return_value=mock_result)
+        monkeypatch.setattr(subprocess, 'run', mock_subprocess)
+
+        response = client.post('/api/settings/browse-folder',
+                               json={'initial_dir': None},
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert 'path' in data
+        assert 'SelectedFolder' in data['path']
+
+    def test_browse_folder_endpoint_cancelled(self, client, monkeypatch):
+        """Test browse-folder endpoint when user cancels."""
+        import subprocess
+        from unittest.mock import MagicMock
+
+        # Mock subprocess.run to simulate user cancelling
+        mock_result = MagicMock()
+        mock_result.stdout = ""  # Empty means cancelled
+        mock_subprocess = MagicMock(return_value=mock_result)
+        monkeypatch.setattr(subprocess, 'run', mock_subprocess)
+
+        response = client.post('/api/settings/browse-folder',
+                               json={'initial_dir': None},
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'cancelled'

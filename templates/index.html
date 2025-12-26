@@ -24,6 +24,11 @@
                             <path d="M8 2c3.5 0 6.5 2.5 8 6-1.5 3.5-4.5 6-8 6s-6.5-2.5-8-6c1.5-3.5 4.5-6 8-6zm0 10c2 0 3.5-1.5 3.5-3.5S10 5 8 5 4.5 6.5 4.5 8.5 6 12 8 12zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/>
                         </svg>
                     </button>
+                    <button class="btn-icon" id="btnSettings" title="Einstellungen">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+                        </svg>
+                    </button>
                     <button class="btn-new-chapter" id="btnNewChapter">+ Neues Kapitel</button>
                 </div>
             </div>
@@ -308,6 +313,118 @@ Du kannst einfache Formatierung verwenden:
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancelCover">Abbrechen</button>
                 <button class="btn-primary" id="btnSaveCover">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Einstellungen</h3>
+                <button class="btn-close-modal" id="btnCloseSettings">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Datenspeicherort</h4>
+                    <p class="section-description">
+                        Speichere deine Memoiren in einem OneDrive- oder anderen Cloud-Ordner für automatisches Backup.
+                    </p>
+
+                    <div class="current-location">
+                        <label>Aktueller Speicherort:</label>
+                        <div class="location-display">
+                            <code id="currentDataPath">Lädt...</code>
+                        </div>
+                        <div class="location-stats">
+                            <span id="dataSize">-</span> • <span id="fileCount">-</span> Dateien
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newDataPath">Neuer Speicherort:</label>
+                        <div class="path-input-group">
+                            <input
+                                type="text"
+                                id="newDataPath"
+                                class="form-input"
+                                placeholder="z.B. C:\Users\Name\OneDrive\MemDoc"
+                            >
+                            <button class="btn-secondary" id="btnBrowseFolder" title="Ordner auswählen">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Durchsuchen
+                            </button>
+                        </div>
+                        <div id="pathValidationResult" class="validation-message"></div>
+                    </div>
+
+                    <div class="migration-options" id="migrationOptions">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="keepBackup" checked>
+                            <label for="keepBackup">
+                                Alte Daten als Backup behalten (empfohlen)
+                            </label>
+                        </div>
+
+                        <button
+                            class="btn-primary"
+                            id="btnStartMigration"
+                            disabled
+                            title="Bitte erst einen Ordner auswählen"
+                        >
+                            Daten verschieben
+                        </button>
+                    </div>
+
+                    <div class="migration-progress" id="migrationProgress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="migrationProgressBar"></div>
+                        </div>
+                        <p id="migrationStatus">Kopiere Dateien...</p>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>Hinweis:</strong> Nach dem Verschieben wird die Anwendung neu gestartet.
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btnCancelSettings">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subfolder Name Prompt -->
+    <div class="modal-overlay" id="subfolderPrompt" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Unterordner benennen</h3>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: #666;">
+                    Gewählter Ordner: <strong id="selectedParentPath"></strong>
+                </p>
+                <div class="form-group">
+                    <label for="subfolderName">Name für den Memoir-Ordner:</label>
+                    <input
+                        type="text"
+                        id="subfolderName"
+                        class="form-input"
+                        value="MemDoc"
+                        placeholder="z.B. MemDoc oder Meine-Memoiren"
+                    >
+                    <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
+                        Vollständiger Pfad: <code id="fullPathPreview" style="color: #2196F3;"></code>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btnCancelSubfolder">Abbrechen</button>
+                <button class="btn-primary" id="btnConfirmSubfolder">OK</button>
             </div>
         </div>
     </div>

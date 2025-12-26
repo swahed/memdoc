@@ -10,12 +10,17 @@ from flask import Flask, render_template, jsonify, request, send_from_directory,
 from core.markdown_handler import MemoirHandler
 from core.image_handler import save_uploaded_image, check_image_resolution
 from core.pdf_generator import generate_chapter_preview_html, generate_chapter_pdf
+from core.config_manager import (
+    load_config, save_config, validate_data_path,
+    get_data_dir, get_directory_size, count_files
+)
+from core.data_migrator import migrate_data_directory
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 
-# Initialize memoir handler
-memoir_handler = MemoirHandler(data_dir="data")
+# Initialize memoir handler (will be set in initialize_memoir_handler)
+memoir_handler = None
 
 
 @app.route('/')
@@ -396,8 +401,212 @@ def serve_static(path):
     return send_from_directory('static', path)
 
 
+# ===== Settings & Configuration Endpoints =====
+
+@app.route('/api/settings', methods=['GET'])
+def get_settings():
+    """Get current application settings including data directory."""
+    try:
+        config = load_config()
+        data_dir = get_data_dir()
+
+        # Get size and file count of current data directory
+        total_size = get_directory_size(data_dir)
+        file_count = count_files(data_dir)
+
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'data_directory': str(data_dir),
+                'data_size_mb': total_size / (1024 * 1024),
+                'file_count': file_count,
+                'config_file': str(Path.home() / ".memdoc" / "config.json"),
+                'preferences': config.get('preferences', {})
+            }
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/settings/validate-path', methods=['POST'])
+def validate_path():
+    """Validate a potential data directory path."""
+    try:
+        data = request.json
+        path_str = data.get('path')
+
+        if not path_str:
+            return jsonify({'status': 'error', 'message': 'No path provided'}), 400
+
+        path = Path(path_str).resolve()
+        is_valid, message = validate_data_path(path)
+
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'is_valid': is_valid,
+                'message': message,
+                'resolved_path': str(path)
+            }
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/settings/migrate-data', methods=['POST'])
+def migrate_data():
+    """Migrate memoir data to a new directory."""
+    try:
+        data = request.json
+        new_path_str = data.get('new_path')
+        keep_backup = data.get('keep_backup', True)
+
+        if not new_path_str:
+            return jsonify({'status': 'error', 'message': 'No path provided'}), 400
+
+        new_path = Path(new_path_str).resolve()
+        old_path = get_data_dir()
+
+        # Validate new path
+        is_valid, message = validate_data_path(new_path)
+        if not is_valid:
+            return jsonify({'status': 'error', 'message': message}), 400
+
+        # Perform migration
+        success, stats = migrate_data_directory(
+            old_path,
+            new_path,
+            keep_backup=keep_backup
+        )
+
+        if success:
+            # Update config
+            config = load_config()
+            config['data_directory'] = str(new_path)
+
+            from datetime import datetime
+            config['last_migration'] = {
+                'timestamp': datetime.now().isoformat(),
+                'from': str(old_path),
+                'to': str(new_path),
+                'backup_kept': keep_backup
+            }
+            save_config(config)
+
+            # Reinitialize memoir_handler with new path
+            global memoir_handler
+            memoir_handler = MemoirHandler(data_dir=str(new_path))
+
+            return jsonify({
+                'status': 'success',
+                'data': {
+                    'files_copied': stats['files_copied'],
+                    'bytes_copied': stats['bytes_copied'],
+                    'backup_location': stats.get('backup_location')
+                }
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Migration failed',
+                'details': stats.get('error')
+            }), 500
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/settings/preferences', methods=['PUT'])
+def update_preferences():
+    """Update user preferences (non-critical settings)."""
+    try:
+        preferences = request.json
+        config = load_config()
+        config['preferences'] = {**config.get('preferences', {}), **preferences}
+        save_config(config)
+
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/settings/browse-folder', methods=['POST'])
+def browse_folder():
+    """Open native folder picker dialog and return selected path."""
+    try:
+        import subprocess
+
+        # Get initial directory from request (optional)
+        data = request.json or {}
+        initial_dir = data.get('initial_dir') or str(Path.home())
+
+        # Get path to folder picker script
+        script_path = Path(__file__).parent / 'scripts' / 'folder_picker.py'
+
+        # Build command - only pass initial_dir if it's not empty
+        cmd = [sys.executable, str(script_path)]
+        if initial_dir:
+            cmd.append(initial_dir)
+
+        # Run folder picker as subprocess to avoid tkinter threading issues
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout
+        )
+
+        # Get selected path from stdout
+        selected_folder = result.stdout.strip()
+
+        if selected_folder:
+            # Convert to Path and resolve to absolute
+            folder_path = Path(selected_folder).resolve()
+            return jsonify({
+                'status': 'success',
+                'path': str(folder_path)
+            })
+        else:
+            # User cancelled
+            return jsonify({
+                'status': 'cancelled'
+            })
+
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'message': 'Folder picker timed out'}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+# ===== Application Initialization =====
+
+def initialize_memoir_handler():
+    """Initialize memoir handler with configured data directory and validation."""
+    data_dir = get_data_dir()
+    is_valid, error_msg = validate_data_path(data_dir, check_not_current=False)
+
+    if not is_valid:
+        print(f"\n{'='*60}")
+        print("ERROR: Cannot access memoir data directory")
+        print(f"Path: {data_dir}")
+        print(f"Reason: {error_msg}")
+        print("\nPossible solutions:")
+        print("1. Ensure OneDrive is running and synced")
+        print("2. Check folder permissions")
+        print(f"3. Edit config: {Path.home() / '.memdoc' / 'config.json'}")
+        print(f"{'='*60}\n")
+        sys.exit(1)
+
+    return MemoirHandler(data_dir=str(data_dir))
+
+
 def main():
     """Main entry point."""
+    global memoir_handler
+
+    # Initialize memoir handler with validation
+    memoir_handler = initialize_memoir_handler()
+
     # Check for command-line arguments
     browser_mode = '--browser' in sys.argv
     debug_mode = '--debug' in sys.argv
@@ -407,6 +616,7 @@ def main():
         print("\n" + "="*50)
         print("MemDoc - Memoir Documentation Tool")
         print("="*50)
+        print(f"\nData directory: {memoir_handler.data_dir}")
         print("\nRunning in BROWSER mode")
         print("Open your browser to: http://localhost:5000")
         print("\nPress Ctrl+C to stop the server\n")

@@ -170,5 +170,84 @@ const API = {
 
         // Save memoir metadata
         return await this.updateMemoir(memoir);
+    },
+
+    /**
+     * Get application settings
+     */
+    async getSettings() {
+        const response = await fetch('/api/settings');
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
+    },
+
+    /**
+     * Validate a data directory path
+     */
+    async validateDataPath(path) {
+        const response = await fetch('/api/settings/validate-path', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path })
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
+    },
+
+    /**
+     * Migrate data to new directory
+     */
+    async migrateData(newPath, keepBackup = true) {
+        const response = await fetch('/api/settings/migrate-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                new_path: newPath,
+                keep_backup: keepBackup
+            })
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data.data;
+    },
+
+    /**
+     * Update user preferences
+     */
+    async updatePreferences(preferences) {
+        const response = await fetch('/api/settings/preferences', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(preferences)
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
+    },
+
+    /**
+     * Open native folder picker dialog
+     */
+    async browseFolder(initialDir = null) {
+        const response = await fetch('/api/settings/browse-folder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initial_dir: initialDir })
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
     }
 };
