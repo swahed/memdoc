@@ -903,22 +903,23 @@ def main():
         print("\nStarting desktop application...")
         print("="*50 + "\n")
 
-        # Initialize Eel with Flask app
-        # Use get_resource_path to find templates in both dev and bundled modes
-        templates_path = get_resource_path('templates')
-        eel.init(str(templates_path))
+        # Initialize Eel with static files (Eel needs this even when using Flask)
+        # When app=app is passed, Flask handles all routing, Eel just wraps it
+        static_path = get_resource_path('static')
+        eel.init(str(static_path))
 
         # Start Eel with Flask app integration
+        # Use '/' to let Flask's @app.route('/') handle the index page
         try:
             eel.start(
-                'index.html',
+                '/',  # URL route handled by Flask, not a filename
                 mode='chrome',  # Use Chrome app mode
                 host='localhost',
                 port=5000,
                 size=(1200, 800),
                 position=(100, 100),
                 disable_cache=debug_mode,
-                app=app  # Pass Flask app to Eel
+                app=app  # Pass Flask app to Eel - Flask handles all routing
             )
         except (SystemExit, KeyboardInterrupt):
             print("\nShutting down...")
