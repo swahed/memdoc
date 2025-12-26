@@ -187,6 +187,7 @@ def markdown_to_html(markdown_content: str, chapter_title: str = "") -> str:
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             page-break-after: avoid;
+            clear: both;
         }}
 
         h1 {{
@@ -552,6 +553,7 @@ def generate_memoir_preview_html(memoir_handler) -> str:
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             page-break-after: avoid;
+            clear: both;
         }}
 
         h1 {{
