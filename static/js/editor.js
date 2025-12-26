@@ -27,7 +27,6 @@ class Editor {
         this.btnH3 = document.getElementById('btnH3');
         this.btnInsertImage = document.getElementById('btnInsertImage');
         this.btnPreview = document.getElementById('btnPreview');
-        this.btnExportPDF = document.getElementById('btnExportPDF');
 
         // Image upload state
         this.currentImageData = null;
@@ -134,7 +133,6 @@ class Editor {
             this.btnH3.disabled = false;
             this.btnInsertImage.disabled = false;
             this.btnPreview.disabled = false;
-            this.btnExportPDF.disabled = false;
 
             this.updateWordCount();
             this.setSaveStatus('saved');
@@ -197,7 +195,6 @@ class Editor {
         this.btnH3.disabled = true;
         this.btnInsertImage.disabled = true;
         this.btnPreview.disabled = true;
-        this.btnExportPDF.disabled = true;
 
         this.setSaveStatus('ready');
         this.updateWordCount();
