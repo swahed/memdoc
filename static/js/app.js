@@ -89,38 +89,44 @@ class MemDocApp {
 
         this.chapterList.innerHTML = this.chapters.map((chapter, index) => `
             <div class="chapter-item" data-id="${chapter.id}">
+                <div class="chapter-item-buttons">
+                    <div class="chapter-item-move-buttons">
+                        ${index > 0 ? `
+                            <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="up" title="${i18n.t('moveUp')}">
+                                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                                    <path d="M7 11V3M4 6l3-3 3 3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        ` : '<span style="width: 20px; display: inline-block;"></span>'}
+                        ${index < this.chapters.length - 1 ? `
+                            <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="down" title="${i18n.t('moveDown')}">
+                                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                                    <path d="M7 3v8M4 8l3 3 3-3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        ` : '<span style="width: 20px; display: inline-block;"></span>'}
+                    </div>
+                    <div class="chapter-item-edit-buttons">
+                        <button class="btn-edit-chapter" data-id="${chapter.id}" title="${i18n.t('editChapter')}">
+                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                                <path d="M10 1l3 3-7 7H3v-3z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button class="btn-delete-chapter" data-id="${chapter.id}" title="${i18n.t('deleteChapter')}">
+                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor">
+                                <path d="M1 3h12M5 1h4M5 6v4M9 6v4M3 3l1 9h6l1-9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="chapter-item-content">
-                    <div class="chapter-item-header">
-                        <div class="chapter-item-title">${this.escapeHtml(chapter.title || i18n.t('untitledChapter'))}</div>
+                    <div class="chapter-item-title" title="${this.escapeHtml(chapter.title || i18n.t('untitledChapter'))}">${this.escapeHtml(chapter.title || i18n.t('untitledChapter'))}</div>
+                    <div class="chapter-item-footer">
+                        ${chapter.subtitle ? `
+                            <div class="chapter-item-subtitle" title="${this.escapeHtml(chapter.subtitle)}">${this.escapeHtml(chapter.subtitle)}</div>
+                        ` : '<div></div>'}
                         <div class="chapter-item-wordcount">${chapter.wordCount || 0}</div>
                     </div>
-                    ${chapter.subtitle ? `<div class="chapter-item-subtitle">${this.escapeHtml(chapter.subtitle)}</div>` : ''}
-                </div>
-                <div class="chapter-item-actions">
-                    ${index > 0 ? `
-                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="up" title="${i18n.t('moveUp')}">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
-                                <path d="M7 11V3M4 6l3-3 3 3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    ` : '<span style="width: 22px"></span>'}
-                    ${index < this.chapters.length - 1 ? `
-                        <button class="btn-move-chapter" data-id="${chapter.id}" data-direction="down" title="${i18n.t('moveDown')}">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
-                                <path d="M7 3v8M4 8l3 3 3-3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </button>
-                    ` : '<span style="width: 22px"></span>'}
-                    <button class="btn-edit-chapter" data-id="${chapter.id}" title="${i18n.t('editChapter')}">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
-                            <path d="M10 1l3 3-7 7H3v-3z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <button class="btn-delete-chapter" data-id="${chapter.id}" title="${i18n.t('deleteChapter')}">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor">
-                            <path d="M1 3h12M5 1h4M5 6v4M9 6v4M3 3l1 9h6l1-9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
                 </div>
             </div>
         `).join('');

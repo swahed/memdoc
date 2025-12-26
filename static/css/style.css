@@ -103,8 +103,7 @@ body {
     border-radius: 4px;
     transition: background 0.2s;
     display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
+    gap: 0.5rem;
 }
 
 .chapter-item:hover {
@@ -116,60 +115,79 @@ body {
     color: white;
 }
 
-.chapter-item-content {
-    flex: 1;
-    cursor: pointer;
+.chapter-item-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-shrink: 0;
 }
 
-.chapter-item-header {
+.chapter-item-move-buttons,
+.chapter-item-edit-buttons {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: var(--spacing-xs);
-    margin-bottom: 0.2rem;
+    gap: 0.125rem;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+.chapter-item:hover .chapter-item-move-buttons,
+.chapter-item:hover .chapter-item-edit-buttons {
+    opacity: 1;
+}
+
+.chapter-item.active .chapter-item-move-buttons,
+.chapter-item.active .chapter-item-edit-buttons {
+    opacity: 1;
+}
+
+.chapter-item-content {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .chapter-item-title {
     font-weight: 500;
     font-size: 0.95rem;
-    flex: 1;
-    min-width: 0; /* Allow text truncation if needed */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.chapter-item-wordcount {
-    font-size: 0.75rem;
-    color: var(--color-text-light);
-    font-variant-numeric: tabular-nums; /* Aligns numbers nicely */
-    opacity: 0.6;
-    flex-shrink: 0;
-}
-
-.chapter-item.active .chapter-item-wordcount {
-    color: rgba(255, 255, 255, 0.7);
-    opacity: 1;
+.chapter-item-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
 }
 
 .chapter-item-subtitle {
     font-size: 0.85rem;
     color: var(--color-text-light);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
 }
 
 .chapter-item.active .chapter-item-subtitle {
     color: rgba(255, 255, 255, 0.8);
 }
 
-.chapter-item-actions {
-    display: flex;
-    gap: 0.25rem;
-    opacity: 0;
-    transition: opacity 0.2s;
+.chapter-item-wordcount {
+    font-size: 0.75rem;
+    color: var(--color-text-light);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+    flex-shrink: 0;
 }
 
-.chapter-item:hover .chapter-item-actions {
-    opacity: 1;
-}
-
-.chapter-item.active .chapter-item-actions {
+.chapter-item.active .chapter-item-wordcount {
+    color: rgba(255, 255, 255, 0.7);
     opacity: 1;
 }
 

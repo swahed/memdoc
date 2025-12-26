@@ -32,23 +32,34 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 2: Localization & Cover Page 🎯 CURRENT PRIORITY
-**Goal: Make the app ready for mom to use with German UI and cover page**
+## Phase 2: Localization & Polish ✅ COMPLETE
+**Goal: Make the app ready for mom to use with German UI and professional features**
 
 ### Features
-- [ ] German localization
+- [x] German localization
   - Translate all UI elements (buttons, labels, messages)
-  - Translate writing prompts
-  - German date/time formatting
-- [ ] Cover page generation
+  - Translate writing prompts (8 categories, 40 prompts)
+  - i18n module with centralized translations
+- [x] Cover page generation
   - UI to enter cover details (title, author, subtitle)
   - Optional cover image upload
   - Live preview of cover page
-  - Display cover page when opening memoir
+  - Smart color picker with automatic color extraction from images
+  - Background color customization
+- [x] Full memoir preview
+  - Preview entire memoir (cover + all chapters)
+  - PDF export for full memoir
+  - Print-optimized layout with page breaks
+- [x] UI improvements
+  - Optimized chapter navigation sidebar
+  - Text truncation with tooltips for long titles
+  - 2x2 button grid layout for maximum title space
+  - Always-visible action buttons (subtle opacity)
+  - Efficient space utilization
 
-**Deliverable:** Fully German interface with professional cover page.
+**Deliverable:** Fully German interface with professional cover page and polished UI. ✅
 
-**Status:** In Progress - Highest priority for stable release
+**Status:** COMPLETE - Ready for mom to use
 
 ---
 
@@ -211,31 +222,35 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 ## Dependencies Between Phases
 
 - Phase 1 → Required for all others ✅
-- Phase 2 → Localization + Cover (current priority) 🎯
-- Phase 3 → Deployment (needs Phase 2 complete)
+- Phase 2 → Localization + Cover ✅ (complete)
+- Phase 3 → Deployment 🎯 (current priority - needs Phase 2 complete ✅)
 - Phase 4 → Enhanced writing (independent)
 - Phase 5 → Images ✅ (complete)
 - Phase 6 → Timeline (needs event tagging from Phase 4)
-- Phase 7 → PDF export (deferred)
+- Phase 7 → PDF export (partially complete - full memoir done, TOC deferred)
 - Phase 8 → Desktop wrapper (can be done anytime)
 
 ## Current Status
 
-**Active Phase:** Phase 2 - Localization & Cover Page 🎯
+**Active Phase:** Phase 3 - Deployment & Data Management 🎯
 
 **Completed Phases:**
 - ✅ Phase 1: MVP - Core writing experience with tests
+- ✅ Phase 2: Localization & Polish - German UI, cover page, full memoir preview, UI improvements
 - ✅ Phase 5: Images & Media with quality checks
 
-**Current Work:**
-1. German UI translation (all elements + prompts)
-2. Cover page generation with preview
-3. Individual commits for each feature
+**Next Priority - Phase 3:**
+1. Configurable data storage location (outside repo for OneDrive backup)
+2. GitHub update mechanism with safety checks
+3. Automatic data backup before updates
+4. Version numbering and German release notes
 
-**Next Up:**
-- Phase 3: Deployment mechanism and data management
-- Phase 4: Enhanced writing tools (WYSIWYG, search, etc.)
+**Future Work:**
+- Phase 4: Enhanced writing tools (WYSIWYG, search, event tagging)
+- Phase 6: Timeline generation
+- Phase 8: Desktop wrapper (Eel integration)
 
 **Testing Status:**
-- ✅ 50 unit tests, 62% overall coverage, 96% on critical modules
-- Testing strategy: Test and commit each feature individually
+- ✅ 76 unit tests passing, 10 E2E tests (skipped in CI)
+- 62% overall coverage, 96% on critical modules
+- All features tested individually before commit
