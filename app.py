@@ -5,6 +5,7 @@ Main application entry point
 
 import sys
 import json
+import os
 from pathlib import Path
 from flask import Flask, render_template, jsonify, request, send_from_directory, send_file
 from core.markdown_handler import MemoirHandler
@@ -24,7 +25,31 @@ try:
 except ImportError:
     EEL_AVAILABLE = False
 
-app = Flask(__name__)
+
+# ===== PyInstaller Path Handling =====
+def get_resource_path(relative_path):
+    """
+    Get absolute path to resource - works for dev and PyInstaller bundled mode.
+
+    When PyInstaller creates the .exe, it unpacks files into sys._MEIPASS.
+    This function finds the correct base path for resource files.
+    """
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller bundle
+        base_path = Path(sys._MEIPASS)
+    else:
+        # Running in normal Python environment
+        base_path = Path(__file__).parent
+
+    return base_path / relative_path
+
+
+# Configure Flask with proper paths for PyInstaller bundle
+app = Flask(
+    __name__,
+    template_folder=str(get_resource_path('templates')),
+    static_folder=str(get_resource_path('static'))
+)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 
 # Initialize memoir handler (will be set in initialize_memoir_handler)
@@ -154,7 +179,7 @@ def delete_chapter(chapter_id):
 def get_prompts():
     """Get writing prompts (German)."""
     try:
-        prompts_file = Path('prompts/writing_prompts_de.json')
+        prompts_file = get_resource_path('prompts/writing_prompts_de.json')
         with open(prompts_file, 'r', encoding='utf-8') as f:
             prompts = json.load(f)
         return jsonify({'status': 'success', 'data': prompts})
@@ -554,7 +579,7 @@ def browse_folder():
         initial_dir = data.get('initial_dir') or str(Path.home())
 
         # Get path to folder picker script
-        script_path = Path(__file__).parent / 'scripts' / 'folder_picker.py'
+        script_path = get_resource_path('scripts/folder_picker.py')
 
         # Build command - only pass initial_dir if it's not empty
         cmd = [sys.executable, str(script_path)]
@@ -879,7 +904,9 @@ def main():
         print("="*50 + "\n")
 
         # Initialize Eel with Flask app
-        eel.init('templates')
+        # Use get_resource_path to find templates in both dev and bundled modes
+        templates_path = get_resource_path('templates')
+        eel.init(str(templates_path))
 
         # Start Eel with Flask app integration
         try:
