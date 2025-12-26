@@ -360,6 +360,9 @@ class MemDocApp {
             // Update modal title
             this.previewModalTitle.textContent = i18n.t('chapterPreview');
 
+            // Mark that we're previewing a chapter
+            this.previewingFullMemoir = false;
+
             // Show modal
             this.previewModal.classList.add('visible');
 
@@ -376,6 +379,9 @@ class MemDocApp {
         try {
             // Update modal title
             this.previewModalTitle.textContent = i18n.t('previewFullMemoir');
+
+            // Mark that we're previewing the full memoir
+            this.previewingFullMemoir = true;
 
             // Show modal
             this.previewModal.classList.add('visible');
@@ -396,13 +402,18 @@ class MemDocApp {
     }
 
     async exportPDF() {
-        if (!this.editor.currentChapterId) {
-            return;
-        }
-
         try {
+            // Determine which endpoint to use based on preview mode
+            const endpoint = this.previewingFullMemoir
+                ? '/api/memoir/export/pdf'
+                : `/api/chapters/${this.editor.currentChapterId}/export/pdf`;
+
+            if (!this.previewingFullMemoir && !this.editor.currentChapterId) {
+                return;
+            }
+
             // Fetch PDF file
-            const response = await fetch(`/api/chapters/${this.editor.currentChapterId}/export/pdf`);
+            const response = await fetch(endpoint);
 
             // Check if response is an error (JSON) or success (PDF file)
             const contentType = response.headers.get('content-type');

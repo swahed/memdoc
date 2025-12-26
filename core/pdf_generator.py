@@ -428,6 +428,41 @@ def generate_chapter_pdf(memoir_handler, chapter_id: str, output_path: Path) -> 
     return True
 
 
+def generate_memoir_pdf(memoir_handler, output_path: Path) -> bool:
+    """
+    Generate PDF for the entire memoir (cover + all chapters).
+
+    Args:
+        memoir_handler: MemoirHandler instance
+        output_path: Path where PDF should be saved
+
+    Returns:
+        True if successful, raises exception otherwise
+    """
+    # Check if WeasyPrint is available
+    is_available, error_message = check_weasyprint_available()
+    if not is_available:
+        raise RuntimeError(error_message)
+
+    from weasyprint import HTML, CSS
+
+    # Generate HTML content
+    html_content = generate_memoir_preview_html(memoir_handler)
+
+    # Convert to PDF with WeasyPrint
+    HTML(string=html_content, base_url=str(memoir_handler.data_dir)).write_pdf(
+        output_path,
+        stylesheets=[CSS(string='''
+            @page {
+                size: A4;
+                margin: 2.5cm 2cm;
+            }
+        ''')]
+    )
+
+    return True
+
+
 def generate_memoir_preview_html(memoir_handler) -> str:
     """
     Generate HTML preview for the entire memoir (cover + all chapters).

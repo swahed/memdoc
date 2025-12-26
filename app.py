@@ -288,6 +288,46 @@ def preview_memoir():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/memoir/export/pdf', methods=['GET'])
+def export_memoir_pdf():
+    """Generate and download PDF of the entire memoir."""
+    import tempfile
+    import os
+
+    temp_pdf = None
+    try:
+        # Generate PDF in temp file
+        temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        temp_pdf.close()
+
+        from core.pdf_generator import generate_memoir_pdf
+        generate_memoir_pdf(memoir_handler, Path(temp_pdf.name))
+
+        # Get memoir title for filename
+        metadata = memoir_handler.load_memoir_metadata()
+        title = metadata.get('cover', {}).get('title', 'memoir')
+        # Sanitize filename
+        safe_title = ''.join(c if c.isalnum() or c in ('-', '_') else '-' for c in title.lower())
+        safe_title = safe_title[:30]  # Limit length
+
+        # Send file
+        return send_file(
+            temp_pdf.name,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'{safe_title}.pdf'
+        )
+    except RuntimeError as e:
+        # PDF dependencies not available - return helpful error message
+        if temp_pdf and os.path.exists(temp_pdf.name):
+            os.unlink(temp_pdf.name)
+        return jsonify({'status': 'error', 'message': str(e), 'type': 'dependency_error'}), 500
+    except Exception as e:
+        if temp_pdf and os.path.exists(temp_pdf.name):
+            os.unlink(temp_pdf.name)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/pdf/check', methods=['GET'])
 def check_pdf_availability():
     """Check if PDF export is available (WeasyPrint dependencies installed)."""
