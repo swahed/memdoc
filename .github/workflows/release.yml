@@ -36,49 +36,43 @@ jobs:
           echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create Release with GitHub CLI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: MemDoc ${{ steps.get_version.outputs.VERSION }}
-          body: |
-            # MemDoc ${{ steps.get_version.outputs.VERSION }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $VERSION = "${{ steps.get_version.outputs.VERSION }}"
 
-            ## Was ist neu?
+          # Create release notes
+          $NOTES = @"
+          # MemDoc $VERSION
 
-            <!-- Füge hier die Änderungen ein -->
+          ## Was ist neu?
 
-            ## Installation
+          <!-- Fuege hier die Aenderungen ein -->
 
-            1. Lade `MemDoc.exe` herunter
-            2. Führe die Datei aus
-            3. Beim ersten Start wähle einen Speicherort für deine Memoiren (z.B. in OneDrive)
+          ## Installation
 
-            ## Hinweise
+          1. Lade ``MemDoc.exe`` herunter
+          2. Fuehre die Datei aus
+          3. Beim ersten Start waehle einen Speicherort fuer deine Memoiren (z.B. in OneDrive)
 
-            - Windows kann eine Sicherheitswarnung anzeigen (da die .exe nicht signiert ist). Klicke auf "Weitere Informationen" → "Trotzdem ausführen"
-            - Speichere deine Daten in einem OneDrive-Ordner für automatisches Backup
-            - Updates werden automatisch im Programm angeboten
+          ## Hinweise
 
-            ## Changelog
+          - Windows kann eine Sicherheitswarnung anzeigen (da die .exe nicht signiert ist). Klicke auf "Weitere Informationen" -> "Trotzdem ausfuehren"
+          - Speichere deine Daten in einem OneDrive-Ordner fuer automatisches Backup
+          - Updates werden automatisch im Programm angeboten
 
-            Siehe vollständige Änderungen: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+          ## Changelog
 
-            ---
+          Siehe vollstaendige Aenderungen: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
 
-            🤖 Automatisch erstellt mit GitHub Actions
-          draft: false
-          prerelease: false
+          ---
 
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/MemDoc.exe
-          asset_name: MemDoc.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
+          Automatisch erstellt mit GitHub Actions
+          "@
+
+          # Create release and upload asset
+          gh release create "${{ github.ref_name }}" `
+            ./dist/MemDoc.exe `
+            --title "MemDoc $VERSION" `
+            --notes "$NOTES"
