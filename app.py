@@ -277,6 +277,17 @@ def preview_chapter(chapter_id):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/memoir/preview', methods=['GET'])
+def preview_memoir():
+    """Generate HTML preview of the entire memoir (cover + all chapters)."""
+    try:
+        from core.pdf_generator import generate_memoir_preview_html
+        html = generate_memoir_preview_html(memoir_handler)
+        return html, 200, {'Content-Type': 'text/html; charset=utf-8'}
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/pdf/check', methods=['GET'])
 def check_pdf_availability():
     """Check if PDF export is available (WeasyPrint dependencies installed)."""

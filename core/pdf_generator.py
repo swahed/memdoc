@@ -425,3 +425,305 @@ def generate_chapter_pdf(memoir_handler, chapter_id: str, output_path: Path) -> 
     )
 
     return True
+
+
+def generate_memoir_preview_html(memoir_handler) -> str:
+    """
+    Generate HTML preview for the entire memoir (cover + all chapters).
+
+    Args:
+        memoir_handler: MemoirHandler instance
+
+    Returns:
+        HTML string for browser preview of complete memoir
+    """
+    import markdown2
+
+    # Load memoir metadata
+    metadata = memoir_handler.load_memoir_metadata()
+    cover = metadata.get('cover', {})
+
+    # Get all chapters in order
+    chapters = memoir_handler.list_chapters()
+
+    # Build cover page HTML
+    cover_html = ""
+    if cover:
+        cover_title = cover.get('title', '')
+        cover_subtitle = cover.get('subtitle', '')
+        cover_author = cover.get('author', '')
+        cover_image = cover.get('image', '')
+        cover_bg_color = cover.get('backgroundColor', '#f5f5f5')
+
+        # Fix image path for display
+        cover_image_url = ''
+        if cover_image:
+            filename = cover_image.split('/')[-1]
+            cover_image_url = f'/api/images/{filename}'
+
+        cover_html = f"""
+        <div class="cover-page" style="background-color: {cover_bg_color}; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; page-break-after: always; text-align: center; padding: 2rem;">
+            {f'<img src="{cover_image_url}" alt="Cover" style="max-width: 400px; max-height: 400px; margin-bottom: 2rem; border-radius: 8px;" />' if cover_image_url else ''}
+            <h1 style="font-size: 3em; margin-bottom: 0.5rem; color: #1a1a1a;">{cover_title or ''}</h1>
+            {f'<h2 style="font-size: 1.8em; margin-bottom: 2rem; color: #555; font-weight: 400;">{cover_subtitle}</h2>' if cover_subtitle else ''}
+            {f'<p style="font-size: 1.3em; color: #333; margin-top: 3rem;">{cover_author}</p>' if cover_author else ''}
+        </div>
+        """
+
+    # Build chapters HTML
+    chapters_html = ""
+    for idx, chapter_info in enumerate(chapters):
+        chapter = memoir_handler.load_chapter(chapter_info['id'])
+        if chapter:
+            title = chapter['frontmatter'].get('title', 'Untitled')
+            subtitle = chapter['frontmatter'].get('subtitle', '')
+            content = chapter['content']
+
+            # Convert markdown to HTML
+            html_content = markdown2.markdown(
+                content,
+                extras=[
+                    'fenced-code-blocks',
+                    'tables',
+                    'break-on-newline',
+                    'cuddled-lists',
+                    'footnotes'
+                ]
+            )
+
+            # Fix image paths
+            html_content = html_content.replace('src="../images/', 'src="/api/images/')
+
+            # Process kramdown-style class attributes
+            import re
+            pattern = r'(<img[^>]*>)(<br\s*/?>)?\s*\{:\s*([^}]+)\}\s*(<br\s*/?>)?'
+            def add_classes_to_img(match):
+                img_tag = match.group(1)
+                classes = match.group(3).strip()
+                class_names = ' '.join([c.strip('.') for c in classes.split()])
+                if 'class=' in img_tag:
+                    img_tag = img_tag.replace('class="', f'class="{class_names} ')
+                else:
+                    if img_tag.endswith('/>'):
+                        img_tag = img_tag[:-2] + f' class="{class_names}" />'
+                    elif img_tag.endswith('>'):
+                        img_tag = img_tag[:-1] + f' class="{class_names}">'
+                return img_tag
+
+            html_content = re.sub(pattern, add_classes_to_img, html_content)
+
+            # Add chapter HTML (with page break before each chapter except first)
+            page_break = 'page-break-before: always;' if idx > 0 else ''
+            chapters_html += f"""
+            <div class="chapter" style="{page_break}">
+                <h1 style="font-size: 2.2em; margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 0.3em;">{title}</h1>
+                {f'<h2 style="font-size: 1.4em; color: #555; margin-top: -0.5em; margin-bottom: 1.5em; font-weight: 400;">{subtitle}</h2>' if subtitle else ''}
+                {html_content}
+            </div>
+            """
+
+    # Generate complete HTML document
+    html_doc = f"""<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>{cover.get('title', 'Meine Memoiren')}</title>
+    <style>
+        /* Print-optimized typography */
+        @page {{
+            size: A4;
+            margin: 2.5cm 2cm;
+        }}
+
+        body {{
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.8;
+            color: #1a1a1a;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 2rem;
+        }}
+
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 {{
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            page-break-after: avoid;
+        }}
+
+        h1 {{
+            font-size: 2.2em;
+            margin-top: 0;
+        }}
+
+        h2 {{
+            font-size: 1.6em;
+        }}
+
+        h3 {{
+            font-size: 1.3em;
+        }}
+
+        /* Paragraphs */
+        p {{
+            margin: 0 0 1em 0;
+            text-align: justify;
+            orphans: 3;
+            widows: 3;
+        }}
+
+        /* Images */
+        img {{
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1.5em auto;
+            page-break-inside: avoid;
+        }}
+
+        .img-left {{
+            float: left;
+            margin: 0.5em 1.5em 1em 0;
+            max-width: 45%;
+        }}
+
+        .img-right {{
+            float: right;
+            margin: 0.5em 0 1em 1.5em;
+            max-width: 45%;
+        }}
+
+        .img-center {{
+            display: block;
+            margin: 1.5em auto;
+        }}
+
+        .img-full {{
+            display: block;
+            margin: 1.5em 0;
+            max-width: 100%;
+        }}
+
+        .img-small {{
+            max-width: 300px;
+        }}
+
+        .img-medium {{
+            max-width: 500px;
+        }}
+
+        .img-large {{
+            max-width: 700px;
+        }}
+
+        /* Image captions */
+        img + p em, img + p i {{
+            display: block;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: -0.5em;
+            margin-bottom: 1.5em;
+        }}
+
+        /* Lists */
+        ul, ol {{
+            margin: 0 0 1em 0;
+            padding-left: 2em;
+        }}
+
+        li {{
+            margin-bottom: 0.3em;
+        }}
+
+        /* Blockquotes */
+        blockquote {{
+            margin: 1.5em 2em;
+            padding: 0.5em 1em;
+            border-left: 4px solid #ccc;
+            font-style: italic;
+            color: #555;
+        }}
+
+        /* Code */
+        code {{
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }}
+
+        pre {{
+            background: #f5f5f5;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+            page-break-inside: avoid;
+        }}
+
+        pre code {{
+            background: none;
+            padding: 0;
+        }}
+
+        /* Tables */
+        table {{
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+            page-break-inside: avoid;
+        }}
+
+        th, td {{
+            border: 1px solid #ddd;
+            padding: 0.5em;
+            text-align: left;
+        }}
+
+        th {{
+            background: #f5f5f5;
+            font-weight: 600;
+        }}
+
+        /* Links */
+        a {{
+            color: #0066cc;
+            text-decoration: none;
+        }}
+
+        @media print {{
+            a[href]:after {{
+                content: " (" attr(href) ")";
+                font-size: 0.8em;
+                color: #666;
+            }}
+        }}
+
+        /* Horizontal rules */
+        hr {{
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 2em 0;
+        }}
+
+        /* Strong and emphasis */
+        strong, b {{
+            font-weight: 700;
+        }}
+
+        em, i {{
+            font-style: italic;
+        }}
+    </style>
+</head>
+<body>
+    {cover_html}
+    {chapters_html}
+</body>
+</html>"""
+
+    return html_doc

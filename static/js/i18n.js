@@ -155,7 +155,12 @@ Du kannst einfache Formatierung verwenden:
             saveCover: 'Speichern',
             coverSaved: 'Titelseite gespeichert!',
             failedToSaveCover: 'Fehler beim Speichern der Titelseite',
-            failedToLoadCover: 'Fehler beim Laden der Titelseite'
+            failedToLoadCover: 'Fehler beim Laden der Titelseite',
+
+            // Full memoir preview
+            fullMemoirPreview: 'Gesamte Vorschau',
+            previewFullMemoir: 'Gesamte Memoiren-Vorschau',
+            failedToShowMemoirPreview: 'Fehler beim Anzeigen der Gesamtvorschau'
         }
     },
 

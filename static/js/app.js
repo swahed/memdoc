@@ -58,6 +58,9 @@ class MemDocApp {
         // Cover page button
         document.getElementById('btnCoverPage').addEventListener('click', () => this.openCoverPageModal());
 
+        // Full memoir preview button
+        document.getElementById('btnFullPreview').addEventListener('click', () => this.showMemoirPreview());
+
         // Toggle prompts sidebar
         this.btnTogglePrompts.addEventListener('click', () => this.togglePromptsSidebar());
         this.btnClosePrompts.addEventListener('click', () => this.togglePromptsSidebar());
@@ -329,6 +332,7 @@ class MemDocApp {
     setupPreviewExport() {
         // Get preview modal elements
         this.previewModal = document.getElementById('previewModal');
+        this.previewModalTitle = document.getElementById('previewModalTitle');
         this.previewFrame = document.getElementById('previewFrame');
         this.btnPreview = document.getElementById('btnPreview');
         this.btnExportPDF = document.getElementById('btnExportPDF');
@@ -353,6 +357,9 @@ class MemDocApp {
         }
 
         try {
+            // Update modal title
+            this.previewModalTitle.textContent = i18n.t('chapterPreview');
+
             // Show modal
             this.previewModal.classList.add('visible');
 
@@ -361,6 +368,23 @@ class MemDocApp {
         } catch (error) {
             console.error('Error showing preview:', error);
             alert(i18n.t('failedToShowPreview') + ': ' + error.message);
+            this.closePreview();
+        }
+    }
+
+    async showMemoirPreview() {
+        try {
+            // Update modal title
+            this.previewModalTitle.textContent = i18n.t('previewFullMemoir');
+
+            // Show modal
+            this.previewModal.classList.add('visible');
+
+            // Load full memoir preview in iframe
+            this.previewFrame.src = '/api/memoir/preview';
+        } catch (error) {
+            console.error('Error showing memoir preview:', error);
+            alert(i18n.t('failedToShowMemoirPreview') + ': ' + error.message);
             this.closePreview();
         }
     }
