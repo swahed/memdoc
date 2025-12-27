@@ -6,6 +6,7 @@ Tests all REST API endpoints for memoir and chapter operations.
 
 import pytest
 import json
+from unittest.mock import patch
 
 
 class TestMemoirAPI:
@@ -738,3 +739,232 @@ class TestSettingsAPI:
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data['status'] == 'cancelled'
+
+
+class TestUpdateAPI:
+    """Tests for update mechanism endpoints."""
+
+    def test_get_version(self, client):
+        """Test GET /api/version endpoint."""
+        response = client.get('/api/version')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert 'data' in data
+
+        version_info = data['data']
+        assert 'version' in version_info
+        assert 'is_test_build' in version_info
+        assert isinstance(version_info['is_test_build'], bool)
+
+    @patch('core.updater.check_for_updates')
+    def test_check_for_updates_available(self, mock_check, client):
+        """Test /api/updates/check when update is available."""
+        mock_check.return_value = {
+            'update_available': True,
+            'current_version': '1.0.0',
+            'latest_version': '1.1.0',
+            'download_url': 'https://test.com/MemDoc.exe',
+            'release_notes': '## What\'s New\n- Bug fixes',
+            'release_date': '2025-12-27T10:00:00Z',
+            'asset_size': 28000000,
+            'error': None
+        }
+
+        response = client.get('/api/updates/check')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert data['data']['update_available'] is True
+        assert data['data']['latest_version'] == '1.1.0'
+        assert data['data']['download_url'] is not None
+
+    @patch('core.updater.check_for_updates')
+    def test_check_for_updates_none_available(self, mock_check, client):
+        """Test /api/updates/check when no update is available."""
+        mock_check.return_value = {
+            'update_available': False,
+            'current_version': '1.1.0',
+            'latest_version': '1.1.0',
+            'download_url': None,
+            'release_notes': '',
+            'release_date': '',
+            'asset_size': 0,
+            'error': None
+        }
+
+        response = client.get('/api/updates/check')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert data['data']['update_available'] is False
+
+    @patch('core.updater.check_for_updates')
+    def test_check_for_updates_error(self, mock_check, client):
+        """Test /api/updates/check when error occurs."""
+        mock_check.return_value = {
+            'update_available': False,
+            'current_version': '1.0.0',
+            'latest_version': '1.0.0',
+            'download_url': None,
+            'release_notes': '',
+            'release_date': '',
+            'asset_size': 0,
+            'error': 'Network error: Connection failed'
+        }
+
+        response = client.get('/api/updates/check')
+
+        # API returns success but includes error in data
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert data['data']['error'] == 'Network error: Connection failed'
+
+    def test_download_update_missing_url(self, client):
+        """Test /api/updates/download without URL parameter."""
+        response = client.post('/api/updates/download',
+                               json={},
+                               content_type='application/json')
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert 'No download URL provided' in data['message']
+
+    @patch('threading.Thread')
+    def test_download_update_starts_background_task(self, mock_thread, client):
+        """Test /api/updates/download starts background download."""
+        response = client.post('/api/updates/download',
+                               json={'download_url': 'https://test.com/MemDoc.exe'},
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert 'started' in data['message'].lower()
+
+        # Verify thread was started
+        mock_thread.assert_called_once()
+
+    def test_download_update_already_in_progress(self, client, monkeypatch):
+        """Test /api/updates/download when download already in progress."""
+        # Mock download state to show download in progress
+        import app as app_module
+        monkeypatch.setattr(app_module, 'download_state', {
+            'in_progress': True,
+            'downloaded_bytes': 100,
+            'total_bytes': 1000,
+            'downloaded_file': None,
+            'error': None
+        })
+
+        response = client.post('/api/updates/download',
+                               json={'download_url': 'https://test.com/MemDoc.exe'},
+                               content_type='application/json')
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert 'already in progress' in data['message'].lower()
+
+    def test_get_download_status_no_download(self, client, monkeypatch):
+        """Test /api/updates/download/status when no download in progress."""
+        # Reset download state
+        import app as app_module
+        monkeypatch.setattr(app_module, 'download_state', {
+            'in_progress': False,
+            'downloaded_bytes': 0,
+            'total_bytes': 0,
+            'downloaded_file': None,
+            'error': None
+        })
+
+        response = client.get('/api/updates/download/status')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert 'in_progress' in data['data']
+        assert data['data']['in_progress'] is False
+        assert 'completed' in data['data']
+        assert 'error' in data['data']
+
+    def test_install_update_no_file(self, client):
+        """Test /api/updates/install when no file downloaded."""
+        response = client.post('/api/updates/install',
+                               json={},
+                               content_type='application/json')
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert 'No update has been downloaded' in data['message']
+
+    @patch('core.updater.list_available_backups')
+    def test_get_update_backups(self, mock_list, client):
+        """Test /api/updates/backups endpoint."""
+        mock_list.return_value = [
+            {
+                'version': '1.1.0',
+                'backup_date': '2025-12-27T10:00:00',
+                'exe_size': 27000000,
+                'backup_path': '/path/to/backup'
+            },
+            {
+                'version': '1.0.0',
+                'backup_date': '2025-12-26T10:00:00',
+                'exe_size': 26000000,
+                'backup_path': '/path/to/backup2'
+            }
+        ]
+
+        response = client.get('/api/updates/backups')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+        assert len(data['data']) == 2
+        assert data['data'][0]['version'] == '1.1.0'
+        assert data['data'][1]['version'] == '1.0.0'
+
+    def test_rollback_missing_version(self, client):
+        """Test /api/updates/rollback without version parameter."""
+        response = client.post('/api/updates/rollback',
+                               json={},
+                               content_type='application/json')
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert 'No version specified' in data['message']
+
+    @patch('core.updater.rollback_to_version')
+    def test_rollback_success(self, mock_rollback, client):
+        """Test successful rollback."""
+        mock_rollback.return_value = (True, None)
+
+        response = client.post('/api/updates/rollback',
+                               json={'version': '1.0.0'},
+                               content_type='application/json')
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['status'] == 'success'
+
+    @patch('core.updater.rollback_to_version')
+    def test_rollback_failure(self, mock_rollback, client):
+        """Test rollback failure."""
+        mock_rollback.return_value = (False, 'Backup not found')
+
+        response = client.post('/api/updates/rollback',
+                               json={'version': '1.0.0'},
+                               content_type='application/json')
+
+        assert response.status_code == 500
+        data = json.loads(response.data)
+        assert data['status'] == 'error'
+        assert 'Backup not found' in data['message']
