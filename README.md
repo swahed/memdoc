@@ -1,117 +1,145 @@
 # MemDoc - Memoir Documentation Tool
 
-A simple, elegant application for writing and formatting personal memoirs, designed for 1-2 users with a focus on simplicity and beautiful output.
+A simple, elegant desktop application for writing and organizing personal memoirs. Designed for non-technical users with a focus on simplicity and beautiful output.
 
-## Purpose
+## Features
 
-MemDoc helps you write your life story with:
-- **Clean writing interface** inspired by iA Writer ✅
-- **Chapter organization** with dedicated title and subtitle fields ✅
-- **Auto-save** that saves your work as you type ✅
-- **Writing prompts** to inspire your memoir writing ✅
-- **Automatic formatting** for professional-looking output (planned)
-- **Timeline generation** from events mentioned throughout your memoir (planned)
-- **Image support** with automatic print-quality checking (planned)
-- **PDF export** with cover, table of contents, and page numbers (planned)
+### ✅ Available Now
+- **Clean writing interface** - Distraction-free editor inspired by iA Writer
+- **Chapter organization** - Dedicated title and subtitle fields
+- **Auto-save** - Your work is saved as you type
+- **German UI** - Fully localized for German-speaking users
+- **Writing prompts** - 40+ prompts across 8 categories to inspire your writing
+- **Cover page** - Beautiful cover with image and color customization
+- **Image support** - Upload and embed photos with quality checking
+- **PDF export** - Export individual chapters or entire memoir
+- **Desktop app** - Runs as native-looking Windows application
+- **Auto-update** - Built-in update mechanism (in development)
+- **OneDrive integration** - Automatic cloud backup support
+
+### 🚧 Planned
+- Timeline generation from events
+- Advanced formatting options
+- Multi-language support (English, others)
 
 ## Quick Start
 
-### Installation
+### For End Users
 
+**Download the latest release:**
+1. Visit [Releases](https://github.com/swahed/memdoc/releases/latest)
+2. Download `MemDoc.exe`
+3. Run the file (Windows may show a security warning - click "More info" → "Run anyway")
+4. Choose a folder for your memoir (OneDrive recommended for automatic backup)
+
+**Full documentation:** [docs/INSTALLATION.md](docs/INSTALLATION.md)
+
+### For Developers
+
+**Clone and run:**
 ```bash
-# Clone the repository
-git clone <repository-url> memdoc
+git clone https://github.com/swahed/memdoc.git
 cd memdoc
-
-# Install core dependencies
-python -m pip install Flask==3.0.0 PyYAML==6.0.1 markdown2==2.4.12
-```
-
-**Note:** Image processing (Pillow) and PDF generation (WeasyPrint) dependencies will be added in later phases. For now, the core memoir writing functionality works perfectly without them.
-
-### Running the Application
-
-**Browser mode (during development):**
-```bash
+pip install -r requirements.txt
 python app.py --browser
 ```
 
-**Desktop mode:**
+Open browser to: http://localhost:5000
+
+**Build standalone .exe:**
 ```bash
-python app.py
+pip install pyinstaller
+python build.py
 ```
 
-### Updating
+Output: `dist/MemDoc.exe`
 
-```bash
-git pull origin main
-pip install -r requirements.txt
+## Documentation
+
+### User Documentation
+- **[Installation Guide](docs/INSTALLATION.md)** - Download, install, and setup
+- **[Update Process](docs/UPDATE_PROCESS.md)** - How updates work
+
+### Developer Documentation
+- **[Build Process](docs/BUILD_PROCESS.md)** - Build .exe locally or via GitHub Actions
+- **[Development Roadmap](docs/ROADMAP.md)** - Project phases and progress
+- **[Cleanup Notes](docs/CLEANUP_NOTES.md)** - Maintenance and cleanup tasks
+- **[Update Debug Notes](docs/UPDATE_MECHANISM_DEBUG_NOTES.md)** - Known issues with updates
+
+## Tech Stack
+
+- **Backend:** Python 3.10, Flask
+- **Frontend:** HTML, CSS, JavaScript (vanilla)
+- **Desktop:** Chrome/Edge in app mode (no Electron)
+- **Storage:** Markdown files, YAML metadata
+- **Build:** PyInstaller for standalone .exe
+- **CI/CD:** GitHub Actions
+
+## Project Structure
+
+```
+memdoc/
+├── app.py                  # Flask application entry point
+├── build.py               # PyInstaller build script
+├── core/                  # Core Python modules
+│   ├── markdown_handler.py
+│   ├── pdf_generator.py
+│   ├── updater.py        # Update mechanism
+│   └── version.py        # Version info
+├── static/               # CSS, JavaScript
+├── templates/            # HTML templates
+├── prompts/              # Writing prompts (German)
+├── data-sample/          # Sample memoir data
+├── tests/                # Unit and E2E tests
+├── docs/                 # Documentation
+└── .github/              # GitHub Actions workflows
 ```
 
-## Current Features
+## Development
 
-**✅ Available Now:**
-1. **Create chapters**: Click "+ New Chapter" to add a new chapter to your memoir
-2. **Write freely**: Clean, distraction-free editor with auto-save (saves 2 seconds after you stop typing)
-3. **Markdown formatting**: Toolbar with bold, italic, and heading buttons (Ctrl+B, Ctrl+I shortcuts)
-4. **Remove formatting**: Strip markdown formatting from selected text with one click
-5. **Organize**: Navigate between chapters using the sidebar, reorder with up/down arrows
-6. **Safe delete**: Deleted chapters are preserved in `data/chapters/deleted/` folder for recovery
-7. **Get inspired**: Click the prompts button (bottom-right) for 40+ memoir writing prompts
-8. **Track progress**: Word count displayed in the status bar and per-chapter in sidebar
-9. **Insert images**: Add photos to your memoir with drag-and-drop or image button
-   - **Automatic quality checks**: Color-coded warnings for print quality (red/yellow/green)
-   - **Smart optimization**: Large images automatically resized to save space
-   - **Flexible positioning**: Left, center, right, or full-width placement
-   - **Size control**: Small (300px), medium (500px), large (700px), or full width
-   - **Add captions**: Describe your photos with optional captions
-   - **Helpful guidance**: Tips for best results with print-quality images
-10. **Preview & Export**: View and export your chapters
-   - **Live preview**: See formatted chapter in browser with all styling
-   - **PDF export**: Download chapter as print-ready PDF (requires GTK libraries on Windows)
-   - **Professional formatting**: Georgia serif font, proper spacing, page breaks
-   - **Image support**: All images included with correct positioning
-   - **Smart error handling**: If PDF libraries aren't installed, you'll get clear instructions on how to install them, plus a workaround using your browser's Print-to-PDF feature
-
-**🚧 Coming Soon:**
-- Event tagging and timeline generation
-- Desktop application mode
-
-## PDF Export Dependencies
-
-PDF export requires system libraries that may not be installed by default:
-
-**Windows:**
-- Download and install [GTK3 Runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases)
-- Restart the application after installation
-
-**macOS:**
+### Running Tests
 ```bash
-brew install pango
+pytest                    # Run all tests
+pytest --cov             # With coverage
+pytest -v                # Verbose
 ```
 
-**Linux (Ubuntu/Debian):**
+### Creating a Release
 ```bash
-sudo apt-get install libpango-1.0-0 libpangoft2-1.0-0
+# 1. Update version
+edit core/version.py
+
+# 2. Update changelog
+edit CHANGELOG.md
+
+# 3. Commit and tag
+git commit -m "Bump version to 1.2.0"
+git tag -a v1.2.0 -m "Release v1.2.0"
+git push origin main v1.2.0
 ```
 
-**Don't want to install dependencies?** No problem! Use the Preview button to view your chapter in the browser, then use your browser's Print-to-PDF feature (Ctrl+P on Windows, ⌘+P on Mac). The app will show you this workaround if the libraries aren't installed.
+GitHub Actions automatically builds and publishes the release.
 
-## File Storage
+## Contributing
 
-Your memoir is saved as markdown files in the `data/` folder. Keep this folder synced with OneDrive (or any cloud storage) for automatic backup.
+This is a personal project, but suggestions and bug reports are welcome via [Issues](https://github.com/swahed/memdoc/issues).
 
-### Deleted Chapters
+## License
 
-When you delete a chapter, it's not permanently removed. Instead, it's moved to `data/chapters/deleted/` with a timestamp added to the filename. This means:
-- You can always recover deleted chapters if needed
-- No memoir content is ever truly lost
-- Files are organized and don't clutter the main chapters folder
+[Choose your license - currently not specified]
+
+## Credits
+
+Built with:
+- [Flask](https://flask.palletsprojects.com/) - Web framework
+- [PyInstaller](https://pyinstaller.org/) - Standalone executable builder
+- [WeasyPrint](https://weasyprint.org/) - PDF generation
+- [Pillow](https://python-pillow.org/) - Image processing
+
+Inspired by [iA Writer](https://ia.net/writer) for the clean writing interface.
 
 ## Support
 
-This is a personal project maintained for family use. If you encounter issues, check the documentation in the `docs/` folder or review the code - it's designed to be simple and readable.
-
-## Philosophy
-
-**Keep it simple.** This tool does one thing well: helps you write and format your memoirs beautifully. No feature bloat, no complexity, just focused writing.
+- **Documentation:** See [docs/](docs/) folder
+- **Issues:** [GitHub Issues](https://github.com/swahed/memdoc/issues)
+- **Releases:** [GitHub Releases](https://github.com/swahed/memdoc/releases)
