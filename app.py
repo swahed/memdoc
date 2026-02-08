@@ -768,7 +768,8 @@ def install_update():
                 'message': f'Backup failed: {error}'
             }), 500
 
-        # Apply update (this will trigger app restart)
+        # Apply update - launches Inno Setup installer which handles
+        # closing this app, replacing files, and restarting
         success, error = apply_update(downloaded_file)
         if not success:
             return jsonify({
@@ -776,22 +777,10 @@ def install_update():
                 'message': f'Update installation failed: {error}'
             }), 500
 
-        # Schedule app exit after response is sent
-        # This allows the update script to replace the .exe
-        def delayed_exit():
-            import time
-            time.sleep(1)  # Give time for response to be sent
-            os._exit(0)  # Force exit all threads
-
-        import threading
-        exit_thread = threading.Thread(target=delayed_exit, daemon=True)
-        exit_thread.start()
-
-        # If we get here, update script is launched
-        # App will exit in 1 second
+        # Installer will handle closing this app via /CLOSEAPPLICATIONS
         return jsonify({
             'status': 'success',
-            'message': 'Update is being installed, app will restart...'
+            'message': 'Installer launched, app will restart...'
         })
 
     except Exception as e:
@@ -933,6 +922,7 @@ def main():
                 browser_name = name
                 break
 
+        browser_process = None
         if not browser_exe:
             print("Chrome/Edge not found. Opening in default browser...")
             import webbrowser
@@ -940,7 +930,7 @@ def main():
         else:
             # Open browser in app mode (looks like a desktop app)
             print(f"Opening {browser_name} in app mode...")
-            subprocess.Popen([
+            browser_process = subprocess.Popen([
                 browser_exe,
                 '--app=http://localhost:5000',
                 f'--window-size=1200,800',
@@ -950,14 +940,23 @@ def main():
         print("\nMemDoc is running!")
         print("Close the browser window to exit.\n")
 
-        # Keep the server running
+        # Keep the server running until browser closes
         try:
-            while True:
-                time.sleep(1)
+            if browser_process:
+                # Poll browser process - exit when it closes
+                while browser_process.poll() is None:
+                    time.sleep(1)
+                print("\nBrowser closed. Shutting down...")
+            else:
+                # Fallback: no browser process to monitor
+                while True:
+                    time.sleep(1)
         except (SystemExit, KeyboardInterrupt):
             print("\nShutting down...")
         except Exception as e:
             print(f"\nError: {e}")
+
+        sys.exit(0)
 
 
 if __name__ == '__main__':

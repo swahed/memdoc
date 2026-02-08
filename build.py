@@ -112,8 +112,8 @@ def build_executable():
         f'--add-data={base_dir / "prompts"};prompts',
         f'--add-data={base_dir / "data-sample"};data-sample',  # Sample memoir data
 
-        # Icon (if exists)
-        # f'--icon={base_dir / "static/images/icon.ico"}',  # Uncomment when icon exists
+        # Icon
+        f'--icon={base_dir / "static" / "images" / "memdoc.ico"}',
 
         # Clean build
         '--clean',

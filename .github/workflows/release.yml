@@ -39,6 +39,14 @@ jobs:
           echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        run: |
+          $VERSION = "${{ steps.get_version.outputs.VERSION }}"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss /DMyAppVersion=$VERSION
+
       - name: Create Release with GitHub CLI
         env:
           GH_TOKEN: ${{ github.token }}
@@ -55,9 +63,10 @@ jobs:
 
           ## Installation
 
-          1. Lade ``MemDoc.exe`` herunter
+          1. Lade ``MemDoc-Setup.exe`` herunter
           2. Fuehre die Datei aus
-          3. Beim ersten Start waehle einen Speicherort fuer deine Memoiren (z.B. in OneDrive)
+          3. Folge dem Installationsassistenten
+          4. MemDoc wird nach der Installation automatisch gestartet
 
           ## Hinweise
 
@@ -74,8 +83,8 @@ jobs:
           Automatisch erstellt mit GitHub Actions
           "@
 
-          # Create release and upload asset
+          # Create release and upload installer
           gh release create "${{ github.ref_name }}" `
-            ./dist/MemDoc.exe `
+            ./dist/MemDoc-Setup.exe `
             --title "MemDoc $VERSION" `
             --notes "$NOTES"

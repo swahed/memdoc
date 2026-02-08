@@ -127,17 +127,24 @@ def check_for_updates() -> Dict:
             result['error'] = f'Version comparison failed: {e}'
             return result
 
-        # Find .exe asset in release
+        # Find installer asset in release (MemDoc-Setup.exe)
         assets = release_data.get('assets', [])
         exe_asset = None
 
         for asset in assets:
-            if asset['name'].endswith('.exe') and 'TEST' not in asset['name']:
+            if asset['name'] == 'MemDoc-Setup.exe':
                 exe_asset = asset
                 break
 
+        # Fallback: any .exe that's not a TEST build
         if not exe_asset:
-            result['error'] = 'No .exe file found in latest release'
+            for asset in assets:
+                if asset['name'].endswith('.exe') and 'TEST' not in asset['name']:
+                    exe_asset = asset
+                    break
+
+        if not exe_asset:
+            result['error'] = 'No installer found in latest release'
             result['update_available'] = False
             return result
 
@@ -291,64 +298,39 @@ def cleanup_old_backups(keep_count: int = 2):
 
 def apply_update(new_exe_path: Path) -> Tuple[bool, Optional[str]]:
     """
-    Replace current .exe with new version.
+    Install update by launching the Inno Setup installer.
 
-    Windows locks running .exe files, so we use a batch script workaround:
-    1. Create update.bat script
-    2. Script waits for app to exit
-    3. Script replaces .exe
-    4. Script restarts app
-    5. Script deletes itself
+    The installer handles everything: closing the running app, replacing files,
+    and restarting the app afterwards.
 
     Args:
-        new_exe_path: Path to new .exe file
+        new_exe_path: Path to downloaded MemDoc-Setup.exe installer
 
     Returns:
         Tuple of (success, error_message)
     """
     try:
-        current_exe = get_current_exe_path()
-        if not current_exe:
-            return False, 'Not running as .exe - cannot update'
-
-        # Verify new .exe is valid
+        # Verify the downloaded file looks valid (PE header check)
         if not verify_exe_integrity(new_exe_path):
-            return False, 'Downloaded .exe failed integrity check'
+            return False, 'Downloaded installer failed integrity check'
 
-        # Create update batch script
-        backup_dir = get_backup_dir()
-        update_script = backup_dir / 'update.bat'
-
-        # Batch script that:
-        # 1. Waits 2 seconds for app to close
-        # 2. Replaces old .exe with new one
-        # 3. Starts new .exe
-        # 4. Deletes itself
-        script_content = f'''@echo off
-timeout /t 2 /nobreak >nul
-move /y "{new_exe_path}" "{current_exe}" >nul 2>&1
-if errorlevel 1 (
-    echo Update failed - could not replace executable
-    pause
-    exit /b 1
-)
-start "" "{current_exe}"
-del "%~f0"
-'''
-
-        with open(update_script, 'w') as f:
-            f.write(script_content)
-
-        # Launch update script and exit
-        subprocess.Popen(
-            ['cmd', '/c', str(update_script)],
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
+        # Launch the Inno Setup installer in silent mode
+        # /SILENT - shows progress bar but no wizard pages
+        # /SUPPRESSMSGBOXES - suppress message boxes
+        # /CLOSEAPPLICATIONS - close running MemDoc instance
+        # /RESTARTAPPLICATIONS - restart MemDoc after install
+        subprocess.Popen([
+            str(new_exe_path),
+            '/SILENT',
+            '/SUPPRESSMSGBOXES',
+            '/CLOSEAPPLICATIONS',
+            '/RESTARTAPPLICATIONS'
+        ])
 
         return True, None
 
     except Exception as e:
-        return False, f'Failed to apply update: {e}'
+        return False, f'Failed to launch installer: {e}'
 
 
 def list_available_backups() -> list:

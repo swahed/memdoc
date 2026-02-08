@@ -8,8 +8,8 @@ or production build based on environment variables set during compilation.
 import os
 
 # Version information
-VERSION = "1.1.9"
-RELEASE_DATE = "2025-12-26"
+VERSION = "1.2.0"
+RELEASE_DATE = "2026-02-08"
 GITHUB_REPO = "swahed/memdoc"
 
 # Build type detection

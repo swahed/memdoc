@@ -28,8 +28,8 @@ def mock_github_release():
         'published_at': '2025-12-27T10:00:00Z',
         'assets': [
             {
-                'name': 'MemDoc.exe',
-                'browser_download_url': 'https://github.com/test/memdoc/releases/download/v1.2.0/MemDoc.exe',
+                'name': 'MemDoc-Setup.exe',
+                'browser_download_url': 'https://github.com/test/memdoc/releases/download/v1.2.0/MemDoc-Setup.exe',
                 'size': 28000000
             }
         ]
@@ -138,7 +138,7 @@ class TestUpdateChecking:
         result = updater.check_for_updates()
 
         assert result['update_available'] is False
-        assert 'No .exe file found' in result['error']
+        assert 'No installer found' in result['error']
 
     @patch('core.updater.requests.get')
     @patch('core.updater.IS_TEST_BUILD', False)
@@ -163,7 +163,63 @@ class TestUpdateChecking:
         result = updater.check_for_updates()
 
         assert result['update_available'] is False
-        assert 'No .exe file found' in result['error']
+        assert 'No installer found' in result['error']
+
+    @patch('core.updater.requests.get')
+    @patch('core.updater.IS_TEST_BUILD', False)
+    def test_check_for_updates_prefers_setup_exe(self, mock_get):
+        """Test that MemDoc-Setup.exe is preferred over bare MemDoc.exe."""
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            'tag_name': 'v1.2.0',
+            'body': 'Release notes',
+            'published_at': '2025-12-27T10:00:00Z',
+            'assets': [
+                {
+                    'name': 'MemDoc.exe',
+                    'browser_download_url': 'https://test.com/MemDoc.exe',
+                    'size': 27000000
+                },
+                {
+                    'name': 'MemDoc-Setup.exe',
+                    'browser_download_url': 'https://test.com/MemDoc-Setup.exe',
+                    'size': 30000000
+                }
+            ]
+        }
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+
+        result = updater.check_for_updates()
+
+        assert result['update_available'] is True
+        assert 'MemDoc-Setup.exe' in result['download_url']
+        assert result['asset_size'] == 30000000
+
+    @patch('core.updater.requests.get')
+    @patch('core.updater.IS_TEST_BUILD', False)
+    def test_check_for_updates_falls_back_to_bare_exe(self, mock_get):
+        """Test fallback to MemDoc.exe when MemDoc-Setup.exe is not available."""
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            'tag_name': 'v1.2.0',
+            'body': 'Release notes',
+            'published_at': '2025-12-27T10:00:00Z',
+            'assets': [
+                {
+                    'name': 'MemDoc.exe',
+                    'browser_download_url': 'https://test.com/MemDoc.exe',
+                    'size': 27000000
+                }
+            ]
+        }
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+
+        result = updater.check_for_updates()
+
+        assert result['update_available'] is True
+        assert 'MemDoc.exe' in result['download_url']
 
 
 class TestDownload:
@@ -349,49 +405,49 @@ class TestBackupAndRestore:
 
 
 class TestApplyUpdate:
-    """Tests for applying updates."""
+    """Tests for applying updates via Inno Setup installer."""
 
-    @patch('core.updater.get_current_exe_path')
     @patch('core.updater.subprocess.Popen')
-    def test_apply_update_creates_batch_script(self, mock_popen, mock_exe_path, temp_backup_dir, tmp_path):
-        """Test that update creates and runs batch script."""
-        # Create fake exe files
-        current_exe = tmp_path / "MemDoc.exe"
-        new_exe = tmp_path / "MemDoc-new.exe"
+    def test_apply_update_launches_installer(self, mock_popen, tmp_path):
+        """Test that update launches Inno Setup installer with correct flags."""
+        # Create fake installer file
+        installer = tmp_path / "MemDoc-Setup.exe"
+        with open(installer, 'wb') as f:
+            f.write(b'MZ')
+            f.write(b'\x00' * (2 * 1024 * 1024))
 
-        # Make them valid
-        for exe in [current_exe, new_exe]:
-            with open(exe, 'wb') as f:
-                f.write(b'MZ')
-                f.write(b'\x00' * (2 * 1024 * 1024))
-
-        mock_exe_path.return_value = current_exe
-
-        success, error = updater.apply_update(new_exe)
+        success, error = updater.apply_update(installer)
 
         assert success is True
         assert error is None
 
-        # Verify batch script was created
-        update_script = temp_backup_dir / 'update.bat'
-        assert update_script.exists()
-
-        # Verify subprocess was called to run script
+        # Verify Popen was called with correct Inno Setup flags
         mock_popen.assert_called_once()
+        call_args = mock_popen.call_args[0][0]
+        assert str(installer) == call_args[0]
+        assert '/SILENT' in call_args
+        assert '/SUPPRESSMSGBOXES' in call_args
+        assert '/CLOSEAPPLICATIONS' in call_args
+        assert '/RESTARTAPPLICATIONS' in call_args
 
-    @patch('core.updater.get_current_exe_path')
-    def test_apply_update_invalid_exe(self, mock_exe_path, tmp_path):
-        """Test update fails for invalid .exe."""
-        current_exe = tmp_path / "MemDoc.exe"
-        new_exe = tmp_path / "invalid.exe"
+    def test_apply_update_invalid_installer(self, tmp_path):
+        """Test update fails for invalid installer file."""
+        installer = tmp_path / "invalid.exe"
 
-        # Create invalid new exe (wrong header)
-        with open(new_exe, 'wb') as f:
+        # Create invalid file (wrong header)
+        with open(installer, 'wb') as f:
             f.write(b'XX')  # Wrong header
 
-        mock_exe_path.return_value = current_exe
+        success, error = updater.apply_update(installer)
 
-        success, error = updater.apply_update(new_exe)
+        assert success is False
+        assert 'integrity check' in error
+
+    def test_apply_update_nonexistent_file(self, tmp_path):
+        """Test update fails for nonexistent file."""
+        installer = tmp_path / "nonexistent.exe"
+
+        success, error = updater.apply_update(installer)
 
         assert success is False
         assert 'integrity check' in error
