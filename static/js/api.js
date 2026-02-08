@@ -134,17 +134,6 @@ const API = {
         return data;
     },
 
-    /**
-     * Get writing prompts
-     */
-    async getPrompts() {
-        const response = await fetch('/api/prompts');
-        const data = await response.json();
-        if (data.status === 'error') {
-            throw new Error(data.message);
-        }
-        return data.data;
-    },
 
     /**
      * Get word count statistics

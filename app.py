@@ -172,17 +172,6 @@ def delete_chapter(chapter_id):
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
-@app.route('/api/prompts', methods=['GET'])
-def get_prompts():
-    """Get writing prompts (German)."""
-    try:
-        prompts_file = get_resource_path('prompts/writing_prompts_de.json')
-        with open(prompts_file, 'r', encoding='utf-8') as f:
-            prompts = json.load(f)
-        return jsonify({'status': 'success', 'data': prompts})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
 
 @app.route('/api/statistics', methods=['GET'])
 def get_statistics():

@@ -7,7 +7,6 @@ class MemDocApp {
     constructor() {
         this.editor = new Editor();
         this.chapters = [];
-        this.prompts = null;
         this.coverData = null;
         this.coverImageFile = null;
 
@@ -20,10 +19,6 @@ class MemDocApp {
         // Get DOM elements
         this.chapterList = document.getElementById('chapterList');
         this.btnNewChapter = document.getElementById('btnNewChapter');
-        this.promptsSidebar = document.getElementById('promptsSidebar');
-        this.btnTogglePrompts = document.getElementById('btnTogglePrompts');
-        this.btnClosePrompts = document.getElementById('btnClosePrompts');
-        this.promptsContent = document.getElementById('promptsContent');
 
         this.init();
     }
@@ -38,7 +33,7 @@ class MemDocApp {
         this.setupCoverPage();
         this.setupUpdateUI();
         await this.loadChapters();
-        await this.loadPrompts();
+        await this.loadCoverTile();
 
         // Check for updates on startup (if enabled)
         if (!this.isTestBuild && !this.isDevMode) {
@@ -70,18 +65,19 @@ class MemDocApp {
         // New chapter button
         this.btnNewChapter.addEventListener('click', () => this.handleNewChapter());
 
-        // Cover page button
-        document.getElementById('btnCoverPage').addEventListener('click', () => this.openCoverPageModal());
+        // Cover tile — click anywhere opens cover page modal
+        document.getElementById('coverTile').addEventListener('click', () => this.openCoverPageModal());
+        document.getElementById('coverTileEdit').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openCoverPageModal();
+        });
 
-        // Settings button
+        // Settings button (sidebar footer)
         document.getElementById('btnSettings').addEventListener('click', () => this.openSettingsModal());
 
-        // Full memoir preview button
+        // Full memoir preview button (sidebar footer)
         document.getElementById('btnFullPreview').addEventListener('click', () => this.showMemoirPreview());
 
-        // Toggle prompts sidebar
-        this.btnTogglePrompts.addEventListener('click', () => this.togglePromptsSidebar());
-        this.btnClosePrompts.addEventListener('click', () => this.togglePromptsSidebar());
     }
 
     async loadChapters(autoSelect = true) {
@@ -293,58 +289,6 @@ class MemDocApp {
         }
     }
 
-    async loadPrompts() {
-        try {
-            this.prompts = await API.getPrompts();
-            this.renderPrompts();
-        } catch (error) {
-            console.error('Error loading prompts:', error);
-            this.promptsContent.innerHTML = `<p class="loading">${i18n.t('failedToLoadPrompts')}</p>`;
-        }
-    }
-
-    renderPrompts() {
-        if (!this.prompts || !this.prompts.prompts) {
-            return;
-        }
-
-        this.promptsContent.innerHTML = this.prompts.prompts.map(category => `
-            <div class="prompt-category">
-                <div class="prompt-category-title">${this.escapeHtml(category.category)}</div>
-                ${category.questions.map(question => `
-                    <div class="prompt-question" data-question="${this.escapeHtml(question)}">
-                        ${this.escapeHtml(question)}
-                    </div>
-                `).join('')}
-            </div>
-        `).join('');
-
-        // Add click handlers to prompts
-        this.promptsContent.querySelectorAll('.prompt-question').forEach(prompt => {
-            prompt.addEventListener('click', () => {
-                const question = prompt.dataset.question;
-                this.insertPrompt(question);
-            });
-        });
-    }
-
-    insertPrompt(question) {
-        const text = `\n\n**${question}**\n\n`;
-        this.editor.insertText(text);
-        // Close prompts sidebar after inserting
-        this.togglePromptsSidebar(false);
-    }
-
-    togglePromptsSidebar(show) {
-        if (show === undefined) {
-            this.promptsSidebar.classList.toggle('visible');
-        } else if (show) {
-            this.promptsSidebar.classList.add('visible');
-        } else {
-            this.promptsSidebar.classList.remove('visible');
-        }
-    }
-
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -529,6 +473,37 @@ class MemDocApp {
 
         // Show modal
         modal.classList.add('visible');
+    }
+
+    // === Cover Tile ===
+
+    async loadCoverTile() {
+        try {
+            const memoir = await API.getMemoir();
+            const cover = memoir.cover || {};
+
+            const tileTitle = document.getElementById('coverTileTitle');
+            const tileSubtitle = document.getElementById('coverTileSubtitle');
+            const tileImage = document.getElementById('coverTileImage');
+            const tilePreview = document.getElementById('coverTilePreview');
+
+            tileTitle.textContent = cover.title || 'Titel deiner Memoiren';
+            tileSubtitle.textContent = cover.subtitle || '';
+            tileSubtitle.style.display = cover.subtitle ? 'block' : 'none';
+
+            // Background color
+            tilePreview.style.background = cover.backgroundColor || '#f5f5f5';
+
+            // Cover image thumbnail
+            if (cover.image) {
+                tileImage.style.backgroundImage = `url('/api/images/${cover.image.split('/').pop()}')`;
+                tileImage.classList.add('visible');
+            } else {
+                tileImage.classList.remove('visible');
+            }
+        } catch (error) {
+            console.error('Error loading cover tile:', error);
+        }
     }
 
     // === Cover Page Methods ===
@@ -719,6 +694,7 @@ class MemDocApp {
             // Save cover data
             await API.updateCover(coverData);
 
+            await this.loadCoverTile();
             alert(i18n.t('coverSaved'));
             this.closeCoverPageModal();
         } catch (error) {

@@ -44,12 +44,6 @@ Du kannst einfache Formatierung verwenden:
             wordsSingular: 'Wort',
             wordsPlural: 'Wörter',
 
-            // Writing prompts
-            writingPrompts: 'Schreibanregungen',
-            loadingPrompts: 'Lade Schreibanregungen...',
-            failedToLoadPrompts: 'Fehler beim Laden der Schreibanregungen',
-            toggleWritingPrompts: 'Schreibanregungen ein-/ausblenden',
-
             // Image upload modal
             insertImage: 'Bild einfügen',
             dragImageHere: 'Bild hierher ziehen oder klicken zum Durchsuchen',
