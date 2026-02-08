@@ -943,10 +943,25 @@ def main():
         # Keep the server running until browser closes
         try:
             if browser_process:
-                # Poll browser process - exit when it closes
+                # Wait a moment then check if browser process is still alive.
+                # Chrome may exit immediately if an existing instance takes over
+                # the --app window (process delegates and exits).
+                launch_time = time.time()
+                min_runtime = 5  # seconds
+
                 while browser_process.poll() is None:
                     time.sleep(1)
-                print("\nBrowser closed. Shutting down...")
+
+                elapsed = time.time() - launch_time
+                if elapsed < min_runtime:
+                    # Browser process exited too fast - Chrome likely delegated
+                    # to an existing instance. Fall back to keeping server alive.
+                    print("Browser delegated to existing instance. Server stays running.")
+                    print("Press Ctrl+C to stop.\n")
+                    while True:
+                        time.sleep(1)
+                else:
+                    print("\nBrowser closed. Shutting down...")
             else:
                 # Fallback: no browser process to monitor
                 while True:
