@@ -41,6 +41,20 @@ def get_config_path() -> Path:
         return Path.home() / ".memdoc" / "config.json"
 
 
+def get_default_data_dir() -> Path:
+    """
+    Get the default data directory for fresh installs.
+
+    Uses ~/Documents/MemDoc which is user-writable and discoverable.
+    This avoids issues with CWD-relative paths resolving to
+    non-writable locations like C:\\Program Files\\MemDoc\\data.
+
+    Returns:
+        Path to the default data directory
+    """
+    return Path.home() / "Documents" / "MemDoc"
+
+
 def get_default_config() -> Dict:
     """
     Get default configuration.
@@ -50,7 +64,7 @@ def get_default_config() -> Dict:
     """
     return {
         "version": "1.0",
-        "data_directory": str(Path("data").resolve()),
+        "data_directory": str(get_default_data_dir()),
         "created_at": datetime.now().isoformat(),
         "last_migration": None,
         "preferences": {
@@ -71,16 +85,16 @@ def load_config() -> Dict:
     config_path = get_config_path()
 
     if not config_path.exists():
-        # First run - check if ./data exists with content
-        data_dir = Path("data").resolve()
-        memoir_file = data_dir / "memoir.json"
+        # First run - check if ./data exists with content (dev mode)
+        local_data_dir = Path("data").resolve()
+        local_memoir_file = local_data_dir / "memoir.json"
 
         # Create default config
         config = get_default_config()
 
-        # If data directory exists with memoir.json, use it
-        if memoir_file.exists():
-            config["data_directory"] = str(data_dir)
+        # If local data directory exists with memoir.json, use it (dev mode)
+        if local_memoir_file.exists():
+            config["data_directory"] = str(local_data_dir)
 
         # Save config for future use
         save_config(config)

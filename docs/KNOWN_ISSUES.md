@@ -48,6 +48,22 @@
 - Same retry/health-check approach as the chapter loading fix
 - Settings modal could retry loading when opened if initial load failed
 
+## Uninstaller leaves MemDoc.exe behind
+
+**Status:** Open
+**Since:** v1.2.0
+**Severity:** Low (cosmetic - app is removed from "Apps" list, but exe stays on disk)
+
+**Symptom:** After uninstalling via Windows Settings or the uninstaller, the `C:\Program Files\MemDoc\` folder remains with `MemDoc.exe` still in it. The uninstaller itself and other files are removed. The app no longer appears in Windows "Apps & features".
+
+**Likely cause:** The exe was still running (or locked by a process) when the uninstaller tried to delete it. Inno Setup's `CloseApplications=yes` may not be working reliably, or the app wasn't fully shut down before the uninstaller tried to remove it.
+
+**Possible fixes to investigate:**
+- Ensure the `AppMutex` in `installer.iss` matches a real mutex created by the app
+- Add `[UninstallRun]` section to kill the process before uninstall
+- Add `CloseApplicationsFilter` with the correct exe name
+- Test whether the issue is timing-related (uninstaller not waiting long enough)
+
 ## Creating a chapter fails: "Fehler beim Erstellen des Kapitels: Failed to fetch"
 
 **Status:** Open
