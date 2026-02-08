@@ -63,27 +63,32 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 ---
 
-## Phase 3: Deployment & Data Management
+## Phase 3: Deployment & Data Management ✅ COMPLETE
 **Goal: Safe distribution and updates for mom**
 
 ### Features
-- [ ] Configurable data storage location
-  - Let user choose data folder outside repo
+- [x] Configurable data storage location
+  - Settings UI to choose data folder
   - OneDrive backup instructions
-  - Data migration tool
-- [ ] Update mechanism
+  - Data migration tool with backup option
+  - Default: ~/Documents/MemDoc (user-writable)
+- [x] Update mechanism
   - Check for updates from GitHub releases
-  - In-app update button
+  - In-app update banner and modal
   - Automatic data backup before update
-  - Safety mechanisms to prevent data loss
-- [ ] Release process
-  - GitHub releases for stable versions
-  - Version numbering
-  - Release notes in German
+  - Download progress with install & restart
+- [x] Release process
+  - GitHub Actions CI/CD: tag → PyInstaller → Inno Setup → GitHub Release
+  - Semantic versioning
+  - German release notes
+- [x] Desktop experience
+  - PyInstaller single-exe build
+  - Inno Setup installer (German UI, shortcuts, Program Files)
+  - Chrome app mode with process cleanup on close (v1.2.1)
 
-**Deliverable:** Mom can safely install, update, and backup her work.
+**Deliverable:** Mom can safely install, update, and backup her work. ✅
 
-**Status:** Next priority after Phase 2
+**Status:** COMPLETE
 
 ---
 
@@ -192,21 +197,12 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 **Nice-to-have features for later consideration**
 
 ### Possible Features
-- [ ] **Process cleanup on window close** ⚠️ IMPORTANT for non-technical users
-  - Currently, closing the app window leaves background processes running
-  - User must manually kill processes to delete/replace .exe
-  - This would be confusing/frustrating for mom
-  - Solutions:
-    - Add window close detection to exit Python process cleanly
-    - System tray icon with explicit "Exit" option
-    - Auto-cleanup timeout after window closes
-  - **Priority:** Medium-High (affects user experience and troubleshooting)
-- [ ] AI-assisted writing features
-  - Smart writing prompts based on context
-  - Grammar and style suggestions
-  - Story arc analysis
-  - **Note:** Needs more conceptual work, privacy considerations
-  - Must be opt-in with clear data handling
+- [x] ~~Process cleanup on window close~~ ✅ Fixed in v1.2.1 (Chrome delegation detection)
+- [ ] AI-assisted writing features (LLM-based)
+  - App provides rich context from user's writing — high potential
+  - Writing suggestions removed from UI in v1.3.0 (shelved until proper MVP is designed)
+  - Needs careful scoping: what prompts, what model, privacy, opt-in
+  - **Note:** Do NOT just add generic prompts — design a thoughtful writing assistant
 - [ ] Multiple memoir projects support
 - [ ] Export to EPUB format
 - [ ] Advanced image editing (crop, rotate)
@@ -232,32 +228,30 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 
 - Phase 1 → Required for all others ✅
 - Phase 2 → Localization + Cover ✅ (complete)
-- Phase 3 → Deployment 🎯 (current priority - needs Phase 2 complete ✅)
+- Phase 3 → Deployment ✅ (complete)
 - Phase 4 → Enhanced writing (independent)
 - Phase 5 → Images ✅ (complete)
 - Phase 6 → Timeline (needs event tagging from Phase 4)
 - Phase 7 → PDF export (partially complete - full memoir done, TOC deferred)
-- Phase 8 → Desktop wrapper (can be done anytime)
+- Phase 8 → Desktop wrapper (mostly done via Chrome app mode)
 
 ## Current Status
 
-**Active Phase:** Phase 3 - Deployment & Data Management 🎯
-
 **Completed Phases:**
 - ✅ Phase 1: MVP - Core writing experience with tests
-- ✅ Phase 2: Localization & Polish - German UI, cover page, full memoir preview, UI improvements
+- ✅ Phase 2: Localization & Polish - German UI, cover page, full memoir preview
+- ✅ Phase 3: Deployment - Installer, updates, data management, CI/CD
 - ✅ Phase 5: Images & Media with quality checks
 
-**Next Priority - Phase 3:**
-1. Configurable data storage location (outside repo for OneDrive backup)
-2. GitHub update mechanism with safety checks
-3. Automatic data backup before updates
-4. Version numbering and German release notes
+**Immediate TODOs (v1.3.x):**
+1. First-run onboarding wizard (title, subtitle, data dir, settings hint)
+2. Handle corrupt/empty memoir.json gracefully
+3. Fix uninstaller leaving MemDoc.exe behind
 
 **Future Work:**
 - Phase 4: Enhanced writing tools (WYSIWYG, search, event tagging)
 - Phase 6: Timeline generation
-- Phase 8: Desktop wrapper (Eel integration)
+- LLM-based writing assistant (needs MVP design)
 
 **Testing Status:**
 - ✅ 76 unit tests passing, 10 E2E tests (skipped in CI)
