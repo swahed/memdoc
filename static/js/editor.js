@@ -324,9 +324,13 @@ class Editor {
         let newCursorPos;
 
         if (selectedText) {
-            // Wrap selected text
-            newText = before + selectedText + after;
-            newCursorPos = start + before.length + selectedText.length + after.length;
+            // Trim whitespace from selection so markers are adjacent to the word
+            // (e.g. double-click selects "word " → produce "**word** " not "**word **")
+            const leadingWS = selectedText.match(/^\s*/)[0];
+            const trailingWS = selectedText.match(/\s*$/)[0];
+            const trimmed = selectedText.trim();
+            newText = leadingWS + before + trimmed + after + trailingWS;
+            newCursorPos = start + newText.length;
         } else {
             // Insert placeholder with markers
             newText = before + placeholder + after;
