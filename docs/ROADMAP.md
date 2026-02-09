@@ -243,10 +243,12 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 - ✅ Phase 3: Deployment - Installer, updates, data management, CI/CD
 - ✅ Phase 5: Images & Media with quality checks
 
-**Immediate TODOs (v1.3.x):**
-1. First-run onboarding wizard (title, subtitle, data dir, settings hint)
-2. Handle corrupt/empty memoir.json gracefully
-3. Fix uninstaller leaving MemDoc.exe behind
+**Current Version:** v1.3.2
+
+**Open Bugs (see KNOWN_ISSUES.md):**
+1. Preview rendering broken (v1.3.2 regex regression)
+2. Single-instance check not working in installed build
+3. Folder picker shows visible PowerShell window (low priority)
 
 **Future Work:**
 - Phase 4: Enhanced writing tools (WYSIWYG, search, event tagging)
@@ -254,6 +256,5 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 - LLM-based writing assistant (needs MVP design)
 
 **Testing Status:**
-- ✅ 76 unit tests passing, 10 E2E tests (skipped in CI)
-- 62% overall coverage, 96% on critical modules
+- 159 unit tests passing, 8 E2E tests (skipped in CI), 2 pre-existing failures
 - All features tested individually before commit
