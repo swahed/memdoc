@@ -365,6 +365,15 @@ body {
     font-size: 0.8rem;
 }
 
+.toolbar-help-link {
+    text-decoration: none;
+    color: var(--color-text-light);
+}
+
+.toolbar-help-link:hover {
+    color: var(--color-accent);
+}
+
 .toolbar-separator {
     width: 1px;
     height: 20px;
@@ -591,6 +600,43 @@ body {
 
 .btn-secondary:hover {
     background: #e0e0e0;
+}
+
+/* Recovery Banner */
+.recovery-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 10px 16px;
+    background: #fff3cd;
+    color: #856404;
+    border-bottom: 1px solid #ffc107;
+    font-size: 0.9rem;
+    z-index: 9998;
+}
+
+.recovery-banner code {
+    background: rgba(0, 0, 0, 0.08);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    word-break: break-all;
+}
+
+.btn-dismiss-recovery {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: #856404;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.btn-dismiss-recovery:hover {
+    color: #533f03;
 }
 
 /* Onboarding Modal */

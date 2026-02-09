@@ -31,7 +31,7 @@ class TestMemoirHandler:
         assert 'author' in metadata
         assert 'cover' in metadata
         assert 'chapters' in metadata
-        assert metadata['title'] == "My Memoir"
+        assert metadata['title'] == "Meine Memoiren"
         assert isinstance(metadata['chapters'], list)
 
     def test_save_memoir_metadata(self, handler, sample_memoir_metadata):
@@ -412,7 +412,7 @@ class TestCorruptMemoirJson:
 
         metadata = handler.load_memoir_metadata()
 
-        assert metadata['title'] == "My Memoir"
+        assert metadata['title'] == "Meine Memoiren"
         assert metadata['chapters'] == []
         # Backup should exist
         assert handler.memoir_file.with_suffix('.json.corrupt').exists()
@@ -423,7 +423,7 @@ class TestCorruptMemoirJson:
 
         metadata = handler.load_memoir_metadata()
 
-        assert metadata['title'] == "My Memoir"
+        assert metadata['title'] == "Meine Memoiren"
         assert metadata['chapters'] == []
 
     def test_truncated_json_memoir_file(self, handler):
@@ -432,7 +432,7 @@ class TestCorruptMemoirJson:
 
         metadata = handler.load_memoir_metadata()
 
-        assert metadata['title'] == "My Memoir"
+        assert metadata['title'] == "Meine Memoiren"
         assert metadata['chapters'] == []
         assert handler.memoir_file.with_suffix('.json.corrupt').exists()
 
@@ -442,7 +442,7 @@ class TestCorruptMemoirJson:
 
         metadata = handler.load_memoir_metadata()
 
-        assert metadata['title'] == "My Memoir"
+        assert metadata['title'] == "Meine Memoiren"
         assert metadata['chapters'] == []
         assert handler.memoir_file.with_suffix('.json.corrupt').exists()
 

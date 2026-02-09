@@ -105,7 +105,7 @@ class Editor {
         }, this.saveDelay);
     }
 
-    async loadChapter(chapterId) {
+    async loadChapter(chapterId, focusTitle = false) {
         try {
             this.setSaveStatus('loading');
 
@@ -137,8 +137,13 @@ class Editor {
             this.updateWordCount();
             this.setSaveStatus('saved');
 
-            // Focus editor
-            this.editor.focus();
+            // Focus title input for new chapters, editor for existing
+            if (focusTitle) {
+                this.titleInput.focus();
+                this.titleInput.select();
+            } else {
+                this.editor.focus();
+            }
         } catch (error) {
             console.error('Error loading chapter:', error);
             this.setSaveStatus('error');

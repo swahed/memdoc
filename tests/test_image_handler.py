@@ -24,7 +24,7 @@ class TestImageResolutionCheck:
         is_suitable, message = check_image_resolution(img_path)
 
         assert is_suitable is True
-        assert "suitable" in message.lower()
+        assert "geeignet" in message.lower()
 
     def test_check_low_resolution_image(self, tmp_path):
         """Test resolution check with low DPI image."""
@@ -36,7 +36,7 @@ class TestImageResolutionCheck:
         is_suitable, message = check_image_resolution(img_path)
 
         assert is_suitable is False
-        assert "low" in message.lower()
+        assert "niedrig" in message.lower()
 
     def test_check_nonexistent_image(self, tmp_path):
         """Test resolution check with non-existent file."""
@@ -45,7 +45,7 @@ class TestImageResolutionCheck:
         is_suitable, message = check_image_resolution(img_path)
 
         assert is_suitable is False
-        assert "error" in message.lower()
+        assert "fehler" in message.lower()
 
 
 class TestImageUpload:
@@ -152,7 +152,7 @@ class TestImageUpload:
         invalid_data = b"This is not an image"
         images_dir = tmp_path / "images"
 
-        with pytest.raises(ValueError, match="Failed to save image"):
+        with pytest.raises(ValueError, match="Fehler beim Speichern des Bildes"):
             save_uploaded_image(invalid_data, "invalid.jpg", images_dir)
 
 

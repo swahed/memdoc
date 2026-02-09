@@ -42,6 +42,9 @@ class MemDocApp {
         await this.loadChapters();
         await this.loadCoverTile();
 
+        // Check if memoir.json was recovered from corruption
+        await this.checkRecovery();
+
         // Check for updates on startup (if enabled)
         if (!this.isTestBuild && !this.isDevMode) {
             await this.checkForUpdatesOnStartup();
@@ -189,7 +192,7 @@ class MemDocApp {
         });
     }
 
-    async selectChapter(chapterId) {
+    async selectChapter(chapterId, focusTitle = false) {
         // Update active state in UI
         this.chapterList.querySelectorAll('.chapter-item').forEach(item => {
             if (item.dataset.id === chapterId) {
@@ -200,21 +203,16 @@ class MemDocApp {
         });
 
         // Load chapter in editor
-        await this.editor.loadChapter(chapterId);
+        await this.editor.loadChapter(chapterId, focusTitle);
     }
 
     async handleNewChapter() {
-        const title = prompt(i18n.t('enterChapterTitle'));
-        if (!title) return;
-
-        const subtitle = prompt(i18n.t('enterChapterSubtitle')) || '';
-
         try {
-            const result = await API.createChapter(title, subtitle);
+            const result = await API.createChapter('Neues Kapitel');
             // Reload chapters without auto-selecting
             await this.loadChapters(false);
-            // Then select the newly created chapter
-            this.selectChapter(result.id);
+            // Select the new chapter and focus the title input
+            this.selectChapter(result.id, true);
         } catch (error) {
             console.error('Error creating chapter:', error);
             alert(i18n.t('failedToCreateChapter') + ': ' + error.message);
@@ -314,10 +312,13 @@ class MemDocApp {
         this.btnClosePreviewBottom = document.getElementById('btnClosePreviewBottom');
         this.btnExportFromPreview = document.getElementById('btnExportFromPreview');
 
+        this.btnPrintPreview = document.getElementById('btnPrintPreview');
+
         // Add event listeners
         this.btnPreview.addEventListener('click', () => this.showPreview());
         this.btnClosePreview.addEventListener('click', () => this.closePreview());
         this.btnClosePreviewBottom.addEventListener('click', () => this.closePreview());
+        this.btnPrintPreview.addEventListener('click', () => this.printPreview());
         this.btnExportFromPreview.addEventListener('click', () => {
             this.closePreview();
             this.exportPDF();
@@ -372,6 +373,14 @@ class MemDocApp {
         this.previewModal.classList.remove('visible');
         // Clear iframe src to stop loading
         this.previewFrame.src = '';
+    }
+
+    printPreview() {
+        try {
+            this.previewFrame.contentWindow.print();
+        } catch (error) {
+            console.error('Error printing preview:', error);
+        }
     }
 
     async exportPDF() {
@@ -557,6 +566,36 @@ class MemDocApp {
             modal.classList.add('visible');
             titleInput.focus();
         });
+    }
+
+    // === Recovery Notification ===
+
+    async checkRecovery() {
+        try {
+            const response = await fetch('/api/status/recovery');
+            const data = await response.json();
+            if (data.status === 'success' && data.recovered) {
+                this.showRecoveryBanner(data.backupPath);
+            }
+        } catch (error) {
+            console.error('Error checking recovery status:', error);
+        }
+    }
+
+    showRecoveryBanner(backupPath) {
+        const banner = document.createElement('div');
+        banner.className = 'recovery-banner';
+        banner.innerHTML = `
+            <span>
+                Die Datei memoir.json war beschädigt und wurde neu erstellt.
+                Eine Sicherung der alten Datei findest du hier: <code>${this.escapeHtml(backupPath)}</code>
+            </span>
+            <button class="btn-dismiss-recovery" title="Schließen">&times;</button>
+        `;
+        banner.querySelector('.btn-dismiss-recovery').addEventListener('click', () => {
+            banner.remove();
+        });
+        document.body.insertBefore(banner, document.body.firstChild);
     }
 
     // === Cover Tile ===
@@ -779,7 +818,6 @@ class MemDocApp {
             await API.updateCover(coverData);
 
             await this.loadCoverTile();
-            alert(i18n.t('coverSaved'));
             this.closeCoverPageModal();
         } catch (error) {
             console.error('Error saving cover:', error);

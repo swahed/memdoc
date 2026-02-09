@@ -30,37 +30,37 @@ def check_weasyprint_available() -> Tuple[bool, str]:
         system = platform.system()
 
         if system == "Windows":
-            instructions = """PDF export requires GTK libraries which are not installed.
+            instructions = """Für den PDF-Export werden GTK-Bibliotheken benötigt, die nicht installiert sind.
 
-To enable PDF export on Windows:
-1. Download GTK3 Runtime: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
-2. Run the installer and follow the setup wizard
-3. Restart the MemDoc application
+So aktivierst du den PDF-Export unter Windows:
+1. Lade GTK3 Runtime herunter: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
+2. Führe das Installationsprogramm aus
+3. Starte MemDoc neu
 
-Alternative: Use the Preview button to view your chapter in the browser, then use your browser's Print to PDF feature (Ctrl+P)."""
+Alternativ: Nutze die Vorschau-Funktion und klicke dort auf „Drucken", um als PDF zu speichern."""
         elif system == "Darwin":  # macOS
-            instructions = """PDF export requires system libraries which are not installed.
+            instructions = """Für den PDF-Export werden Systembibliotheken benötigt, die nicht installiert sind.
 
-To enable PDF export on macOS:
-1. Install Homebrew if you haven't already: https://brew.sh
-2. Run: brew install pango
-3. Restart the MemDoc application
+So aktivierst du den PDF-Export unter macOS:
+1. Installiere Homebrew falls nötig: https://brew.sh
+2. Führe aus: brew install pango
+3. Starte MemDoc neu
 
-Alternative: Use the Preview button to view your chapter in the browser, then use your browser's Print to PDF feature (⌘+P)."""
+Alternativ: Nutze die Vorschau-Funktion und klicke dort auf „Drucken", um als PDF zu speichern."""
         else:  # Linux
-            instructions = """PDF export requires system libraries which may not be installed.
+            instructions = """Für den PDF-Export werden Systembibliotheken benötigt, die möglicherweise nicht installiert sind.
 
-To enable PDF export on Linux:
-1. Install required packages:
+So aktivierst du den PDF-Export unter Linux:
+1. Installiere die benötigten Pakete:
    - Ubuntu/Debian: sudo apt-get install libpango-1.0-0 libpangoft2-1.0-0
    - Fedora: sudo dnf install pango
-2. Restart the MemDoc application
+2. Starte MemDoc neu
 
-Alternative: Use the Preview button to view your chapter in the browser, then use your browser's Print to PDF feature."""
+Alternativ: Nutze die Vorschau-Funktion und klicke dort auf „Drucken", um als PDF zu speichern."""
 
         return False, instructions
     except Exception as e:
-        return False, f"PDF export is unavailable: {str(e)}"
+        return False, f"PDF-Export nicht verfügbar: {str(e)}"
 
 
 def generate_pdf(memoir_metadata: Dict, chapters: List[Dict], output_path: Path) -> None:
@@ -162,7 +162,7 @@ def markdown_to_html(markdown_content: str, chapter_title: str = "") -> str:
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{chapter_title if chapter_title else 'Chapter'}</title>
+    <title>{chapter_title if chapter_title else 'Kapitel'}</title>
     <style>
         /* Print-optimized typography */
         @page {{
@@ -382,7 +382,7 @@ def generate_chapter_preview_html(memoir_handler, chapter_id: str) -> str:
     if not chapter:
         raise ValueError(f"Chapter {chapter_id} not found")
 
-    title = chapter['frontmatter'].get('title', 'Untitled')
+    title = chapter['frontmatter'].get('title', 'Ohne Titel')
     subtitle = chapter['frontmatter'].get('subtitle', '')
     content = chapter['content']
 
@@ -511,7 +511,7 @@ def generate_memoir_preview_html(memoir_handler) -> str:
     for idx, chapter_info in enumerate(chapters):
         chapter = memoir_handler.load_chapter(chapter_info['id'])
         if chapter:
-            title = chapter['frontmatter'].get('title', 'Untitled')
+            title = chapter['frontmatter'].get('title', 'Ohne Titel')
             subtitle = chapter['frontmatter'].get('subtitle', '')
             content = chapter['content']
 

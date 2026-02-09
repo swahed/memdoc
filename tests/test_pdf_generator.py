@@ -41,9 +41,9 @@ class TestPDFDependencyCheck:
         if not is_available:
             # Should have helpful error message
             assert len(message) > 0
-            assert "PDF export" in message
+            assert "PDF-Export" in message
             # Should mention alternative
-            assert "Preview" in message or "browser" in message
+            assert "Vorschau" in message or "Drucken" in message
         else:
             # Should have empty message when available
             assert message == ""
@@ -74,7 +74,7 @@ class TestPDFDependencyCheck:
 
             # Error message should be helpful
             error_msg = str(exc_info.value)
-            assert "PDF export" in error_msg
+            assert "PDF-Export" in error_msg
             assert len(error_msg) > 50  # Should be a detailed message
 
 

@@ -426,6 +426,26 @@ def serve_static(path):
     return send_from_directory('static', path)
 
 
+# ===== Status & Recovery Endpoints =====
+
+@app.route('/api/status/recovery', methods=['GET'])
+def check_recovery():
+    """Check if memoir.json was recovered from a corrupt file."""
+    try:
+        backup_path = memoir_handler.recovered_from_corrupt
+        if backup_path:
+            # Clear the flag so it only shows once
+            memoir_handler.recovered_from_corrupt = None
+            return jsonify({
+                'status': 'success',
+                'recovered': True,
+                'backupPath': backup_path
+            })
+        return jsonify({'status': 'success', 'recovered': False})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 # ===== First-Run Onboarding Endpoints =====
 
 @app.route('/api/config/is-first-run', methods=['GET'])
@@ -618,21 +638,33 @@ def browse_folder():
         data = request.json or {}
         initial_dir = data.get('initial_dir') or str(Path.home())
 
-        # Get path to folder picker script
-        script_path = get_resource_path('scripts/folder_picker.py')
-
-        # Build command - only pass initial_dir if it's not empty
-        cmd = [sys.executable, str(script_path)]
-        if initial_dir:
-            cmd.append(initial_dir)
-
-        # Run folder picker as subprocess to avoid tkinter threading issues
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=300  # 5 minute timeout
-        )
+        if getattr(sys, 'frozen', False):
+            # Bundled mode: use PowerShell folder browser (sys.executable is MemDoc.exe)
+            ps_script = (
+                "Add-Type -AssemblyName System.Windows.Forms; "
+                "$f = New-Object System.Windows.Forms.FolderBrowserDialog; "
+                f"$f.SelectedPath = '{initial_dir}'; "
+                "$f.Description = 'Wähle Speicherort für Memoir-Daten'; "
+                "if ($f.ShowDialog() -eq 'OK') { $f.SelectedPath }"
+            )
+            result = subprocess.run(
+                ['powershell', '-NoProfile', '-Command', ps_script],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+        else:
+            # Dev mode: use Python tkinter folder picker script
+            script_path = get_resource_path('scripts/folder_picker.py')
+            cmd = [sys.executable, str(script_path)]
+            if initial_dir:
+                cmd.append(initial_dir)
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
 
         # Get selected path from stdout
         selected_folder = result.stdout.strip()
@@ -899,9 +931,29 @@ def initialize_memoir_handler():
     return MemoirHandler(data_dir=str(data_dir))
 
 
+def is_port_in_use(port: int) -> bool:
+    """Check if a port is already in use (another instance running)."""
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(('localhost', port))
+            return False
+        except OSError:
+            return True
+
+
 def main():
     """Main entry point."""
     global memoir_handler
+
+    port = 5000
+
+    # Check if another instance is already running
+    if is_port_in_use(port):
+        print("MemDoc is already running. Opening in browser...")
+        import webbrowser
+        webbrowser.open(f'http://localhost:{port}')
+        sys.exit(0)
 
     # Initialize memoir handler with validation
     memoir_handler = initialize_memoir_handler()

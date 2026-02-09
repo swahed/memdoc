@@ -31,6 +31,8 @@ class MemoirHandler:
         self.deleted_dir = self.data_dir / "chapters" / "deleted"
         self.images_dir = self.data_dir / "images"
 
+        self.recovered_from_corrupt = None  # Path to .corrupt backup if recovery happened
+
         # Ensure directories exist
         self.chapters_dir.mkdir(parents=True, exist_ok=True)
         self.deleted_dir.mkdir(parents=True, exist_ok=True)
@@ -44,11 +46,11 @@ class MemoirHandler:
             Dictionary containing memoir metadata and chapter list
         """
         default_memoir = {
-            "title": "My Memoir",
+            "title": "Meine Memoiren",
             "author": "",
             "cover": {
-                "title": "My Memoir",
-                "subtitle": "A Life Story",
+                "title": "Meine Memoiren",
+                "subtitle": "Eine Lebensgeschichte",
                 "author": ""
             },
             "chapters": []
@@ -71,8 +73,9 @@ class MemoirHandler:
             backup_path = self.memoir_file.with_suffix('.json.corrupt')
             try:
                 self.memoir_file.rename(backup_path)
+                self.recovered_from_corrupt = str(backup_path)
             except OSError:
-                pass
+                self.recovered_from_corrupt = "unknown"
             self.save_memoir_metadata(default_memoir)
             return default_memoir
 
@@ -312,7 +315,7 @@ class MemoirHandler:
                 # If chapter file doesn't exist, use defaults
                 chapters_with_titles.append({
                     **chapter_info,
-                    'title': 'Untitled',
+                    'title': 'Ohne Titel',
                     'subtitle': '',
                     'wordCount': 0
                 })
