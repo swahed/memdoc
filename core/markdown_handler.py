@@ -7,9 +7,12 @@ Handles YAML frontmatter parsing and chapter operations.
 
 import os
 import json
+import logging
 import yaml
 from pathlib import Path
 from typing import Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class MemoirHandler:
@@ -40,23 +43,38 @@ class MemoirHandler:
         Returns:
             Dictionary containing memoir metadata and chapter list
         """
-        if not self.memoir_file.exists():
-            # Create default memoir.json if it doesn't exist
-            default_memoir = {
+        default_memoir = {
+            "title": "My Memoir",
+            "author": "",
+            "cover": {
                 "title": "My Memoir",
-                "author": "",
-                "cover": {
-                    "title": "My Memoir",
-                    "subtitle": "A Life Story",
-                    "author": ""
-                },
-                "chapters": []
-            }
+                "subtitle": "A Life Story",
+                "author": ""
+            },
+            "chapters": []
+        }
+
+        if not self.memoir_file.exists():
             self.save_memoir_metadata(default_memoir)
             return default_memoir
 
-        with open(self.memoir_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(self.memoir_file, 'r', encoding='utf-8') as f:
+                raw = f.read()
+
+            if not raw.strip():
+                raise ValueError("memoir.json is empty")
+
+            return json.loads(raw)
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.warning("Corrupt memoir.json detected (%s), backing up and creating default", e)
+            backup_path = self.memoir_file.with_suffix('.json.corrupt')
+            try:
+                self.memoir_file.rename(backup_path)
+            except OSError:
+                pass
+            self.save_memoir_metadata(default_memoir)
+            return default_memoir
 
     def save_memoir_metadata(self, metadata: Dict) -> None:
         """

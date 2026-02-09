@@ -400,3 +400,63 @@ class TestListChapters:
 
         # Verify order
         assert new_chapters[1]['id'] == ch3_id
+
+
+class TestCorruptMemoirJson:
+    """Tests for handling corrupt or empty memoir.json."""
+
+    def test_empty_memoir_file(self, handler):
+        """Test that an empty memoir.json is recovered gracefully."""
+        # Create empty file
+        handler.memoir_file.write_text("", encoding='utf-8')
+
+        metadata = handler.load_memoir_metadata()
+
+        assert metadata['title'] == "My Memoir"
+        assert metadata['chapters'] == []
+        # Backup should exist
+        assert handler.memoir_file.with_suffix('.json.corrupt').exists()
+
+    def test_whitespace_only_memoir_file(self, handler):
+        """Test that a whitespace-only memoir.json is recovered."""
+        handler.memoir_file.write_text("   \n\t  \n", encoding='utf-8')
+
+        metadata = handler.load_memoir_metadata()
+
+        assert metadata['title'] == "My Memoir"
+        assert metadata['chapters'] == []
+
+    def test_truncated_json_memoir_file(self, handler):
+        """Test that truncated JSON is recovered."""
+        handler.memoir_file.write_text('{"title": "Test', encoding='utf-8')
+
+        metadata = handler.load_memoir_metadata()
+
+        assert metadata['title'] == "My Memoir"
+        assert metadata['chapters'] == []
+        assert handler.memoir_file.with_suffix('.json.corrupt').exists()
+
+    def test_invalid_json_memoir_file(self, handler):
+        """Test that invalid JSON content is recovered."""
+        handler.memoir_file.write_text('not json at all!!!', encoding='utf-8')
+
+        metadata = handler.load_memoir_metadata()
+
+        assert metadata['title'] == "My Memoir"
+        assert metadata['chapters'] == []
+        assert handler.memoir_file.with_suffix('.json.corrupt').exists()
+
+    def test_valid_memoir_file_still_works(self, handler):
+        """Test that valid memoir.json is not affected by recovery logic."""
+        valid_data = {
+            "title": "Real Memoir",
+            "author": "Author",
+            "cover": {"title": "Real Memoir", "subtitle": "Real Story", "author": "Author"},
+            "chapters": []
+        }
+        handler.save_memoir_metadata(valid_data)
+
+        metadata = handler.load_memoir_metadata()
+        assert metadata['title'] == "Real Memoir"
+        # No corrupt backup should be created
+        assert not handler.memoir_file.with_suffix('.json.corrupt').exists()

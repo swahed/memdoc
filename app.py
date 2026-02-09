@@ -13,7 +13,8 @@ from core.image_handler import save_uploaded_image, check_image_resolution
 from core.pdf_generator import generate_chapter_preview_html, generate_chapter_pdf
 from core.config_manager import (
     load_config, save_config, validate_data_path,
-    get_data_dir, get_directory_size, count_files
+    get_data_dir, get_directory_size, count_files,
+    is_first_run, get_default_data_dir
 )
 from core.data_migrator import migrate_data_directory
 from core.version import get_window_title, IS_TEST_BUILD, TEST_BUILD_BRANCH, VERSION
@@ -423,6 +424,59 @@ def export_chapter_pdf(chapter_id):
 def serve_static(path):
     """Serve static files."""
     return send_from_directory('static', path)
+
+
+# ===== First-Run Onboarding Endpoints =====
+
+@app.route('/api/config/is-first-run', methods=['GET'])
+def check_first_run():
+    """Check if this is the first run (no memoir data yet)."""
+    try:
+        return jsonify({
+            'status': 'success',
+            'firstRun': is_first_run(),
+            'defaultDataDir': str(get_default_data_dir())
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/config/initial-setup', methods=['POST'])
+def initial_setup():
+    """Set up memoir for the first time with user-provided values."""
+    global memoir_handler
+
+    try:
+        data = request.json
+        title = data.get('title', '').strip() or 'My Memoir'
+        subtitle = data.get('subtitle', '').strip()
+        data_directory = data.get('dataDirectory', '').strip()
+
+        # Update config with data directory if provided
+        if data_directory:
+            config = load_config()
+            config['data_directory'] = data_directory
+            save_config(config)
+
+        # Reinitialize memoir handler with (possibly new) data directory
+        memoir_handler = initialize_memoir_handler()
+
+        # Create memoir.json with user's values
+        memoir_data = {
+            "title": title,
+            "author": "",
+            "cover": {
+                "title": title,
+                "subtitle": subtitle,
+                "author": ""
+            },
+            "chapters": []
+        }
+        memoir_handler.save_memoir_metadata(memoir_data)
+
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 # ===== Settings & Configuration Endpoints =====

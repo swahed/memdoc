@@ -482,6 +482,43 @@ Du kannst einfache Formatierung verwenden:
         </div>
     </div>
 
+    <!-- Onboarding Modal (First Run) -->
+    <div class="modal-overlay" id="onboardingModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Willkommen bei MemDoc!</h3>
+            </div>
+            <div class="modal-body">
+                <p class="onboarding-intro">
+                    Bevor du loslegst, richte deine Memoiren ein.
+                </p>
+                <div class="form-group">
+                    <label for="onboardingTitle">Titel deiner Memoiren *</label>
+                    <input type="text" id="onboardingTitle" class="form-input" placeholder="z.B. Mein Leben">
+                </div>
+                <div class="form-group">
+                    <label for="onboardingSubtitle">Untertitel (optional)</label>
+                    <input type="text" id="onboardingSubtitle" class="form-input" placeholder="z.B. Erinnerungen an eine besondere Zeit">
+                </div>
+                <div class="form-group">
+                    <label for="onboardingDataDir">Speicherort</label>
+                    <div class="path-input-group">
+                        <input type="text" id="onboardingDataDir" class="form-input" readonly>
+                        <button class="btn-secondary" id="btnOnboardingBrowse">
+                            Durchsuchen
+                        </button>
+                    </div>
+                </div>
+                <p class="onboarding-hint">
+                    Du kannst diese Einstellungen später über das Zahnrad-Symbol ändern.
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" id="btnOnboardingStart" disabled>Los geht's</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Update Modal -->
     <div class="modal-overlay" id="updateModal">
         <div class="modal-content update-modal-content">

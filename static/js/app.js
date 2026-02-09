@@ -32,6 +32,13 @@ class MemDocApp {
         this.setupPreviewExport();
         this.setupCoverPage();
         this.setupUpdateUI();
+
+        // Check for first run before loading data
+        const firstRunResult = await this.checkFirstRun();
+        if (firstRunResult) {
+            // Onboarding was shown and completed; data is now initialized
+        }
+
         await this.loadChapters();
         await this.loadCoverTile();
 
@@ -473,6 +480,83 @@ class MemDocApp {
 
         // Show modal
         modal.classList.add('visible');
+    }
+
+    // === First-Run Onboarding ===
+
+    async checkFirstRun() {
+        try {
+            const result = await API.isFirstRun();
+            if (!result.firstRun) return false;
+
+            return await this.showOnboarding(result.defaultDataDir);
+        } catch (error) {
+            console.error('Error checking first run:', error);
+            return false;
+        }
+    }
+
+    showOnboarding(defaultDataDir) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('onboardingModal');
+            const titleInput = document.getElementById('onboardingTitle');
+            const subtitleInput = document.getElementById('onboardingSubtitle');
+            const dataDirInput = document.getElementById('onboardingDataDir');
+            const btnBrowse = document.getElementById('btnOnboardingBrowse');
+            const btnStart = document.getElementById('btnOnboardingStart');
+
+            dataDirInput.value = defaultDataDir;
+
+            // Enable/disable start button based on title
+            const updateStartBtn = () => {
+                btnStart.disabled = !titleInput.value.trim();
+            };
+            titleInput.addEventListener('input', updateStartBtn);
+
+            // Browse folder
+            btnBrowse.addEventListener('click', async () => {
+                try {
+                    const result = await API.browseFolder(dataDirInput.value);
+                    if (result.status === 'success' && result.path) {
+                        dataDirInput.value = result.path;
+                    }
+                } catch (error) {
+                    console.error('Error browsing folder:', error);
+                }
+            });
+
+            // Submit
+            btnStart.addEventListener('click', async () => {
+                btnStart.disabled = true;
+                btnStart.textContent = 'Wird eingerichtet...';
+
+                try {
+                    await API.initialSetup({
+                        title: titleInput.value.trim(),
+                        subtitle: subtitleInput.value.trim(),
+                        dataDirectory: dataDirInput.value.trim()
+                    });
+
+                    modal.classList.remove('visible');
+                    resolve(true);
+                } catch (error) {
+                    console.error('Error during initial setup:', error);
+                    alert('Fehler bei der Einrichtung: ' + error.message);
+                    btnStart.disabled = false;
+                    btnStart.textContent = "Los geht's";
+                }
+            });
+
+            // Allow Enter key in title field to submit
+            titleInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !btnStart.disabled) {
+                    btnStart.click();
+                }
+            });
+
+            modal.classList.add('visible');
+            titleInput.focus();
+        });
     }
 
     // === Cover Tile ===

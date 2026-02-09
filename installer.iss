@@ -53,5 +53,8 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{#MyAppName} starten"; Flags: nowait postinstall skipifsilent
 
+[UninstallRun]
+Filename: "taskkill"; Parameters: "/IM {#MyAppExeName} /F"; Flags: runhidden waituntilterminated; RunOnceId: "KillMemDoc"
+
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

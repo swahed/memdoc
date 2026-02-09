@@ -593,6 +593,19 @@ body {
     background: #e0e0e0;
 }
 
+/* Onboarding Modal */
+.onboarding-intro {
+    margin-bottom: 1.5rem;
+    color: var(--color-text-light);
+    line-height: 1.6;
+}
+
+.onboarding-hint {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+}
+
 /* Upload Dropzone */
 .upload-dropzone {
     border: 2px dashed var(--color-border);

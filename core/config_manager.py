@@ -241,6 +241,22 @@ def get_data_dir() -> Path:
         return Path(data_dir_str).resolve()
 
 
+def is_first_run() -> bool:
+    """
+    Check if this is the first run of the application.
+
+    Returns True if the config file doesn't exist OR if the configured
+    data directory has no memoir.json yet.
+    """
+    config_path = get_config_path()
+    if not config_path.exists():
+        return True
+
+    data_dir = get_data_dir()
+    memoir_file = data_dir / "memoir.json"
+    return not memoir_file.exists()
+
+
 def get_directory_size(path: Path) -> int:
     """
     Calculate total size of a directory in bytes.

@@ -240,6 +240,30 @@ const API = {
         return data;
     },
 
+    // ========== First-Run Onboarding ==========
+
+    async isFirstRun() {
+        const response = await fetch('/api/config/is-first-run');
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
+    },
+
+    async initialSetup(setupData) {
+        const response = await fetch('/api/config/initial-setup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(setupData)
+        });
+        const data = await response.json();
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        return data;
+    },
+
     // ========== Update System ==========
 
     /**
