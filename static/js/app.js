@@ -832,11 +832,15 @@ class MemDocApp {
         await this.loadSettings();
         modal.classList.add('visible');
 
-        // Setup event listeners
-        document.getElementById('btnCloseSettings').addEventListener('click', () => this.closeSettingsModal());
-        document.getElementById('btnCancelSettings').addEventListener('click', () => this.closeSettingsModal());
-        document.getElementById('btnBrowseFolder').addEventListener('click', () => this.browseFolder());
-        document.getElementById('btnStartMigration').addEventListener('click', () => this.startMigration());
+        // Reset migration UI state
+        document.getElementById('migrationOptions').style.display = '';
+        document.getElementById('migrationProgress').style.display = 'none';
+
+        // Setup event listeners (use onclick to avoid duplicate listeners)
+        document.getElementById('btnCloseSettings').onclick = () => this.closeSettingsModal();
+        document.getElementById('btnCancelSettings').onclick = () => this.closeSettingsModal();
+        document.getElementById('btnBrowseFolder').onclick = () => this.browseFolder();
+        document.getElementById('btnStartMigration').onclick = () => this.startMigration();
     }
 
     closeSettingsModal() {
@@ -845,7 +849,9 @@ class MemDocApp {
 
         // Reset UI
         document.getElementById('newDataPath').value = '';
-        document.getElementById('pathValidationResult').innerHTML = '';
+        const resultDiv = document.getElementById('pathValidationResult');
+        resultDiv.innerHTML = '';
+        resultDiv.className = 'validation-message';
         document.getElementById('migrationOptions').style.display = 'none';
         document.getElementById('migrationProgress').style.display = 'none';
     }
@@ -869,95 +875,17 @@ class MemDocApp {
             const pathInput = document.getElementById('newDataPath');
             const currentPath = pathInput.value.trim() || null;
 
-            // Call API to open folder picker for PARENT directory
             const result = await API.browseFolder(currentPath);
 
             if (result.status === 'success' && result.path) {
-                // Store parent path and show subfolder prompt
-                this.selectedParentFolder = result.path;
-                this.showSubfolderPrompt();
+                pathInput.value = result.path;
+                this.validateNewPath();
             }
             // If cancelled, do nothing
         } catch (error) {
             console.error('Error opening folder picker:', error);
             alert('Fehler beim Öffnen des Dateiauswahldialogs: ' + error.message);
         }
-    }
-
-    showSubfolderPrompt() {
-        const modal = document.getElementById('subfolderPrompt');
-        const parentPathDisplay = document.getElementById('selectedParentPath');
-        const subfolderInput = document.getElementById('subfolderName');
-        const previewCode = document.getElementById('fullPathPreview');
-
-        // Show parent path
-        parentPathDisplay.textContent = this.selectedParentFolder;
-
-        // Reset to default subfolder name
-        subfolderInput.value = 'MemDoc';
-
-        // Update preview
-        const updatePreview = () => {
-            const subfolder = subfolderInput.value.trim() || 'MemDoc';
-            const separator = this.selectedParentFolder.includes('\\') ? '\\' : '/';
-            previewCode.textContent = `${this.selectedParentFolder}${separator}${subfolder}`;
-        };
-        updatePreview();
-
-        // Update preview on input
-        subfolderInput.oninput = updatePreview;
-
-        // Show modal
-        modal.style.display = 'flex';
-
-        // Focus input and select text
-        setTimeout(() => {
-            subfolderInput.focus();
-            subfolderInput.select();
-        }, 100);
-
-        // Setup event listeners
-        document.getElementById('btnCancelSubfolder').onclick = () => this.closeSubfolderPrompt();
-        document.getElementById('btnConfirmSubfolder').onclick = () => this.confirmSubfolder();
-
-        // Allow Enter key to confirm
-        subfolderInput.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                this.confirmSubfolder();
-            } else if (e.key === 'Escape') {
-                this.closeSubfolderPrompt();
-            }
-        };
-    }
-
-    closeSubfolderPrompt() {
-        const modal = document.getElementById('subfolderPrompt');
-        modal.style.display = 'none';
-        this.selectedParentFolder = null;
-    }
-
-    confirmSubfolder() {
-        const subfolderInput = document.getElementById('subfolderName');
-        const subfolder = subfolderInput.value.trim() || 'MemDoc';
-        const separator = this.selectedParentFolder.includes('\\') ? '\\' : '/';
-        const fullPath = `${this.selectedParentFolder}${separator}${subfolder}`;
-
-        // Update the path input field
-        const pathInput = document.getElementById('newDataPath');
-        pathInput.value = fullPath;
-
-        // Clear any previous validation results
-        const resultDiv = document.getElementById('pathValidationResult');
-        resultDiv.textContent = '';
-        resultDiv.className = 'validation-message';
-
-        // Enable migrate button (will auto-validate on click)
-        const migrateButton = document.getElementById('btnStartMigration');
-        migrateButton.disabled = false;
-        migrateButton.title = 'Daten zu diesem Ordner verschieben (validiert automatisch)';
-
-        // Close the prompt
-        this.closeSubfolderPrompt();
     }
 
     async validateNewPath() {

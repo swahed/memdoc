@@ -216,11 +216,13 @@ def migrate_data_directory(
         bytes_copied = 0
 
         for source_item in source.rglob('*'):
-            if source_item.is_file():
-                # Calculate relative path
-                relative_path = source_item.relative_to(source)
-                dest_item = destination / relative_path
+            relative_path = source_item.relative_to(source)
+            dest_item = destination / relative_path
 
+            if source_item.is_dir():
+                # Create empty directories too (needed for chapters/, images/)
+                dest_item.mkdir(parents=True, exist_ok=True)
+            elif source_item.is_file():
                 # Create parent directory if needed
                 dest_item.parent.mkdir(parents=True, exist_ok=True)
 
@@ -274,6 +276,12 @@ def migrate_data_directory(
         return True, stats
 
     except Exception as e:
+        # Clean up partially-copied destination so it doesn't block retries
+        try:
+            if destination.exists() and destination != source:
+                shutil.rmtree(destination)
+        except Exception:
+            pass
         stats['error'] = f"Migration failed: {e}"
         return False, stats
 

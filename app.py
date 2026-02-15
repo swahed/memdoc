@@ -640,15 +640,7 @@ def browse_folder():
 
         if getattr(sys, 'frozen', False):
             # Bundled mode: use PowerShell folder browser (sys.executable is MemDoc.exe)
-            # Hide the PowerShell console from within the script, then show the dialog.
-            # Using -WindowStyle Hidden or CREATE_NO_WINDOW breaks the GUI dialog,
-            # so we let the console spawn normally and immediately hide it via Win32 API.
             ps_script = (
-                "Add-Type -Name NativeMethods -Namespace Win32 -MemberDefinition '"
-                '[DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow(); '
-                '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);'
-                "'; "
-                "[Win32.NativeMethods]::ShowWindow([Win32.NativeMethods]::GetConsoleWindow(), 0) | Out-Null; "
                 "Add-Type -AssemblyName System.Windows.Forms; "
                 "$f = New-Object System.Windows.Forms.FolderBrowserDialog; "
                 f"$f.SelectedPath = '{initial_dir}'; "
