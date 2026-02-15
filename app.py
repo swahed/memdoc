@@ -647,12 +647,16 @@ def browse_folder():
                 "$f.Description = 'Wähle Speicherort für Memoir-Daten'; "
                 "if ($f.ShowDialog() -eq 'OK') { $f.SelectedPath }"
             )
+            # Hide the PowerShell console window but keep GUI dialogs working
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = 0  # SW_HIDE
             result = subprocess.run(
                 ['powershell', '-NoProfile', '-Command', ps_script],
                 capture_output=True,
                 text=True,
                 timeout=300,
-                creationflags=subprocess.CREATE_NO_WINDOW
+                startupinfo=startupinfo
             )
         else:
             # Dev mode: use Python tkinter folder picker script
@@ -937,7 +941,8 @@ def check_single_instance():
     Returns True if this is the only instance, False if another is already running.
     """
     import ctypes
-    kernel32 = ctypes.windll.kernel32
+    # use_last_error=True is required for ctypes.get_last_error() to work
+    kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
     mutex = kernel32.CreateMutexW(None, False, "MemDocSingleInstance")
     last_error = ctypes.get_last_error()
     # ERROR_ALREADY_EXISTS = 183
