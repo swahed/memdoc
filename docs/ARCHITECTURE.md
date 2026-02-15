@@ -85,7 +85,7 @@ memdoc/
 │   ├── ROADMAP.md              # Feature backlog
 │   ├── ARCHITECTURE.md         # This file - technical design
 │   ├── DEVELOPMENT.md          # Development guidelines
-│   └── AI_CONTEXT.md           # Context for AI assistants (detailed)
+│   └── AI_FEATURES_BACKLOG.md  # AI feature designs for future phases
 │
 ├── core/                       # Python backend modules
 │   ├── __init__.py

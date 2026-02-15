@@ -1,486 +1,146 @@
-# MemDoc Development Guidelines
+# MemDoc Development Guide
 
 ## Project Context
 
-This is a **personal family project** for 1-2 users (primarily for mom to write her memoirs). The user is a retired computer specialist who may contribute code herself.
+**MemDoc** is a personal memoir writing application for 1-2 users (primarily mom). This is NOT a commercial product.
 
-**Key principles:**
-- **Simplicity over features**: Resist feature creep
-- **Readability over cleverness**: Code should be easy to understand
+- **Users**: Mom (retired computer specialist) + developer (her child)
+- **Privacy**: Critical — memoir content is personal, no data leaves the machine
+- **Simplicity**: More important than features or scalability
+- **Aesthetic**: iA Writer inspired — clean, distraction-free, typography-focused
+
+### Key Principles
+
+- **Simplicity over features**: Resist feature creep, YAGNI
+- **Readability over cleverness**: Code should be understandable by someone learning Python
 - **Working over perfect**: Ship functional features, iterate later
-- **Privacy-first**: No data leaves the local machine
+- **Privacy-first**: No external API calls with memoir content, no telemetry
+
+### What NOT to Do
+
+- Don't add features not in ROADMAP.md without asking
+- Don't use heavy frameworks (no React/Vue/Angular, no Django/FastAPI)
+- Don't optimize prematurely or design for hypothetical scaling
+- Don't send personal data to external APIs
+- Don't make it complex — mom should be able to understand the code
 
 ---
 
-## Development Environment Setup
+## Development Environment
 
 ### Prerequisites
-- Python 3.10 or higher
+- Python 3.10+
 - Git
-- A code editor (VS Code recommended for Python)
-- OneDrive (for automatic file backup)
+- Chrome or Edge (for desktop mode)
 
-### Initial Setup
+### Setup
 
 ```bash
-# Clone the repository
-git clone <repository-url> memdoc
+git clone https://github.com/swahed/memdoc.git
 cd memdoc
-
-# Create virtual environment (recommended)
 python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# Mac/Linux:
-source venv/bin/activate
-
-# Install dependencies
+venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-### Running in Development Mode
+### Running
 
 ```bash
-# Browser mode (easier for development)
-python app.py --browser
+# Browser mode (development)
+python app.py --browser --debug
 
-# Desktop mode (production-like)
+# Desktop mode (production-like, Chrome app mode)
 python app.py
 ```
 
-The app will open at `http://localhost:5000` in browser mode.
+### Deployment (for mom)
+
+Download `MemDoc-Setup.exe` from GitHub Releases. See `INSTALLATION.md`.
 
 ---
 
-## Code Style & Conventions
+## Code Style
 
-### Python Code Style
-- **PEP 8 compliant**: Use standard Python style
-- **Clear naming**: Prefer `calculate_timeline()` over `calc_tl()`
-- **Docstrings**: Add docstrings to all functions
-- **Type hints**: Use type hints for function parameters and returns
+### Python
+- PEP 8 compliant, clear naming, docstrings, type hints
+- One concern per file (`image_handler.py`, not `utils.py`)
 
-Example:
-```python
-def extract_events(content: str) -> list[dict]:
-    """
-    Extract event data from markdown frontmatter.
+### JavaScript
+- ES6+ syntax, vanilla JS (no frameworks)
+- Comments explain "why", not "what"
 
-    Args:
-        content: Markdown file content with YAML frontmatter
-
-    Returns:
-        List of event dictionaries with 'date' and 'title' keys
-    """
-    # Implementation here
-    pass
-```
-
-### JavaScript Code Style
-- **ES6+ syntax**: Use modern JavaScript
-- **Clear naming**: Same as Python
-- **Comments**: Explain "why", not "what"
-- **No frameworks**: Keep it vanilla JS for simplicity
-
-Example:
-```javascript
-/**
- * Auto-save content after user stops typing
- * Debounced to avoid excessive saves
- */
-function autoSave() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-        saveContent();
-    }, 2000);
-}
-```
-
-### File Organization
-- **One concern per file**: Keep modules focused
-- **Clear file names**: `image_handler.py`, not `utils.py`
-- **Group related code**: Keep API routes together, core logic separate
+### CSS
+- Typography-first, minimal chrome, high contrast, generous whitespace
 
 ---
 
 ## Git Workflow
 
-### Branching Strategy
-Since this is a personal project with 1-2 contributors:
-- **main**: Always working, deployable code
-- **feature branches**: Optional, for experimental features
+- **main**: Always working, deployable
+- **feature branches**: For experimental or risky changes
 
-### Commit Messages
-Keep commits clear and descriptive:
+### Release Process
+1. Bump `VERSION` in `core/version.py`
+2. Commit, tag (`git tag v1.X.X`), push with tags
+3. CI builds `MemDoc-Setup.exe` and creates GitHub Release
+
+---
+
+## Testing
+
+**165 unit tests passing**, 1 pre-existing failure, 8 E2E tests (skipped in CI).
 
 ```bash
-# Good commit messages
-git commit -m "Add event tagging to chapter frontmatter"
-git commit -m "Fix image resolution warning threshold"
-git commit -m "Implement full-text search across chapters"
+# Run all tests
+py -m pytest tests/ -q --ignore=tests/test_updater.py -k "not test_get_prompts"
 
-# Avoid vague messages
-git commit -m "Fix bug"
-git commit -m "Update stuff"
-git commit -m "WIP"
+# Run with coverage
+py -m pytest --cov=core --cov-report=html tests/
+
+# Run specific module
+py -m pytest tests/test_data_migrator.py -v
 ```
 
-### Updating (for mom)
-```bash
-# Pull latest changes
-git pull origin main
-
-# If there are local changes, stash first
-git stash
-git pull origin main
-git stash pop
-
-# Update dependencies
-pip install -r requirements.txt
-```
+### What to test
+- `core/markdown_handler.py`: Chapter CRUD, metadata parsing
+- `core/image_handler.py`: Image validation and processing
+- `core/data_migrator.py`: Migration, integrity verification
+- `tests/test_api.py`: API endpoint tests
+- `tests/e2e/`: Playwright browser tests (need running server)
 
 ---
 
 ## Adding New Features
 
-### Feature Development Checklist
-
-1. **Document first**: Update ROADMAP.md with the feature plan
-2. **Design data model**: How will data be stored?
-3. **Backend first**: Implement core logic in Python
-4. **Add API endpoint**: Create Flask route
-5. **Frontend**: Build UI and connect to API
-6. **Test manually**: Verify feature works end-to-end
-7. **Update docs**: Add to README if user-facing
-
-### Example: Adding a New Feature
-
-Let's say we want to add "word count per chapter":
-
-1. **Update ROADMAP.md**: Add to Phase 2 features
-2. **Backend** (`core/word_count.py`):
-   ```python
-   def count_words(chapter_text: str) -> int:
-       """Count words in a chapter."""
-       return len(chapter_text.split())
-   ```
-3. **API** (`app.py`):
-   ```python
-   @app.route('/api/chapters/<chapter_id>/wordcount')
-   def get_word_count(chapter_id):
-       content = get_chapter_content(chapter_id)
-       count = count_words(content)
-       return jsonify({'count': count})
-   ```
-4. **Frontend** (`static/js/app.js`):
-   ```javascript
-   async function displayWordCount(chapterId) {
-       const response = await fetch(`/api/chapters/${chapterId}/wordcount`);
-       const data = await response.json();
-       document.getElementById('word-count').textContent = data.count;
-   }
-   ```
-5. **UI** (`templates/index.html`): Add display element
-6. **Test**: Verify it works
-7. **Commit**: `git commit -m "Add word count per chapter"`
+1. Check ROADMAP.md — is it planned?
+2. Backend first (core module in `core/`)
+3. Add API endpoint in `app.py`
+4. Frontend (JS in `static/js/`, HTML in `templates/`)
+5. Write tests
+6. Test manually, then commit
 
 ---
 
-## Testing Strategy
-
-### Unit Testing (Backend)
-
-Use `pytest` for Python backend tests:
+## Debugging
 
 ```bash
-# Install testing dependencies
-pip install pytest pytest-cov
+# Python: run with debug mode (auto-reload, detailed errors)
+python app.py --browser --debug
 
-# Run tests
-pytest tests/
-
-# Run with coverage
-pytest --cov=core tests/
+# Frontend: F12 → Console and Network tabs
 ```
-
-**What to test:**
-- `core/markdown_handler.py`: Chapter CRUD operations, metadata parsing
-- `core/timeline.py`: Event extraction and sorting
-- `core/image_handler.py`: Image validation and processing
-- `core/search.py`: Full-text search functionality
-
-**Example test structure:**
-```python
-# tests/test_markdown_handler.py
-import pytest
-from core.markdown_handler import MemoirHandler
-
-def test_create_chapter():
-    handler = MemoirHandler(data_dir="tests/fixtures")
-    chapter_id = handler.create_chapter("Test Chapter", "Test Subtitle")
-    assert chapter_id == "ch001"
-
-def test_load_chapter():
-    handler = MemoirHandler(data_dir="tests/fixtures")
-    chapter = handler.load_chapter("ch001")
-    assert chapter['frontmatter']['title'] == "Test Chapter"
-```
-
-### End-to-End Testing (Frontend)
-
-Use `playwright` for browser-based E2E tests:
-
-```bash
-# Install E2E testing dependencies
-pip install pytest-playwright
-playwright install
-
-# Run E2E tests
-pytest tests/e2e/
-```
-
-**What to test:**
-- Chapter creation, editing, deletion workflow
-- Auto-save functionality
-- Chapter reordering
-- Writing prompts insertion
-- Full user journey: create memoir → add chapters → write content → export
-
-**Example E2E test:**
-```python
-# tests/e2e/test_chapter_workflow.py
-def test_create_and_edit_chapter(page):
-    page.goto("http://localhost:5000")
-
-    # Create new chapter
-    page.click("#btnNewChapter")
-    page.fill('input[type="text"]', "My First Chapter")
-    page.press('input[type="text"]', "Enter")
-
-    # Verify chapter appears
-    assert page.inner_text(".chapter-item-title") == "My First Chapter"
-
-    # Edit content
-    page.fill(".markdown-editor", "This is my memoir content")
-    page.wait_for_timeout(2500)  # Wait for auto-save
-
-    # Verify content saved
-    page.reload()
-    assert "This is my memoir content" in page.inner_text(".markdown-editor")
-```
-
-### Manual Testing
-For quick checks during development:
-
-1. **Smoke test**: Can you start the app?
-2. **Feature test**: Does the feature work as expected?
-3. **Edge cases**: What happens with empty input? Very long text?
-4. **Cross-browser** (optional): Test in Chrome, Firefox, Safari
-
-### Testing Checklist (before committing)
-- [ ] All unit tests pass
-- [ ] All E2E tests pass
-- [ ] App starts without errors
-- [ ] New feature works as expected
-- [ ] Existing features still work
-- [ ] No console errors in browser
-- [ ] Files save correctly
-- [ ] Test coverage for new code added
-
----
-
-## Common Development Tasks
-
-### Adding a New API Endpoint
-
-```python
-@app.route('/api/your-endpoint', methods=['GET', 'POST'])
-def your_endpoint():
-    """Brief description of what this endpoint does."""
-    try:
-        # Your logic here
-        return jsonify({'status': 'success', 'data': result})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-```
-
-### Adding a New Writing Prompt
-
-Edit `prompts/writing_prompts.json`:
-```json
-{
-    "prompts": [
-        {
-            "category": "Childhood",
-            "question": "What is your earliest memory?"
-        },
-        {
-            "category": "Relationships",
-            "question": "Describe meeting someone important in your life."
-        }
-    ]
-}
-```
-
-### Adding a New CSS Style
-
-Follow iA Writer aesthetic:
-- **Typography-first**: Focus on readable fonts
-- **Minimal chrome**: Reduce UI clutter
-- **High contrast**: Easy to read
-- **Generous whitespace**: Let content breathe
-
-```css
-/* Add to static/css/style.css */
-.chapter-title {
-    font-family: 'Georgia', serif;
-    font-size: 2em;
-    font-weight: normal;
-    margin: 2em 0 1em 0;
-    color: #1a1a1a;
-}
-```
-
----
-
-## Debugging Tips
-
-### Python Backend Issues
-
-```bash
-# Run with debug mode
-python app.py --debug
-
-# Check Flask logs in terminal
-# Errors will show detailed stack traces
-```
-
-### Frontend Issues
-
-- **Open browser console**: F12 in most browsers
-- **Check Network tab**: See API requests/responses
-- **Console.log liberally**: Debug JavaScript
-
-```javascript
-console.log('Chapter data:', chapterData);
-```
-
-### File Save Issues
-
-- **Check permissions**: Can Python write to `data/` folder?
-- **Check OneDrive sync**: Is the folder syncing properly?
-- **Check disk space**: Enough room for images?
-
----
-
-## Performance Best Practices
-
-### Backend
-- **Lazy loading**: Don't load all chapters if user is editing one
-- **Caching**: Cache parsed markdown if content hasn't changed
-- **Async operations**: Use background tasks for PDF generation
-
-### Frontend
-- **Debounce auto-save**: Don't save on every keystroke (wait 2-3s)
-- **Throttle search**: Don't search on every character typed
-- **Lazy load images**: Don't load all images at once in preview
-
----
-
-## Working with Claude Code
-
-When asking Claude Code for help on this project:
-
-### Provide Context
-```
-"I'm working on MemDoc, a memoir writing tool.
-See AI_CONTEXT.md for project details.
-I need help with [specific task]."
-```
-
-### Be Specific
-```
-"Add a feature to export chapter summaries to the timeline page.
-Each timeline entry should show the first 100 words of the chapter."
-```
-
-### Reference Existing Patterns
-```
-"Following the pattern in image_handler.py,
-add a video_handler.py module for video uploads."
-```
-
-### Ask for Simple Solutions
-```
-"Keep it simple - we only have 1-2 users.
-No need for advanced optimization or scaling."
-```
-
----
-
-## Deployment Notes
-
-### For Mom's Computer
-
-1. Download `MemDoc-Setup.exe` from GitHub Releases
-2. Run installer (German-language wizard)
-3. Launch MemDoc from Start Menu or Desktop shortcut
-4. Choose data folder (default: `~/Documents/MemDoc`)
-5. Optionally sync data folder via OneDrive for backup
-
-See `INSTALLATION.md` for detailed instructions.
-
----
-
-## Troubleshooting
 
 ### Common Issues
-
-**App won't start**
-- Check Python version: `python --version` (should be 3.10+)
-- Reinstall dependencies: `pip install -r requirements.txt`
-- Check for port conflicts: Another app using port 5000?
-
-**Images not appearing**
-- Check file paths in markdown
-- Verify images are in `data/images/`
-- Check file permissions
-
-**PDF export fails**
-- Check WeasyPrint installation
-- Verify all images exist
-- Check for invalid HTML in content
-
-**Can't save files**
-- Check folder permissions
-- Verify `data/` folder exists
-- Check disk space
+- **Port conflict**: Another app on port 5000
+- **Stale templates**: Flask caches in non-debug mode — restart or use `--debug`
+- **PyInstaller paths**: `sys.executable` = the .exe, not Python — use `get_resource_path()`
 
 ---
 
-## Code Review Checklist
+## Key Documents
 
-Before considering a feature "done":
-
-- [ ] Code is readable and well-commented
-- [ ] Follows existing code style
-- [ ] No hardcoded paths or values (use config)
-- [ ] Error handling for common failures
-- [ ] Tested manually with real content
-- [ ] No console errors
-- [ ] Doesn't break existing features
-- [ ] Documentation updated if needed
-
----
-
-## Contact & Support
-
-This is a family project maintained by [your name]. For issues or questions:
-- Check the documentation first
-- Read the code - it's designed to be simple
-- Ask Claude Code for help (see AI_CONTEXT.md)
-- If all else fails, ask the maintainer
-
-Remember: **The goal is to help mom write her memoirs, not to build the perfect software.** Ship working features, keep it simple, iterate based on real usage.
+- `ROADMAP.md` — Feature phases, current status, known issues
+- `ARCHITECTURE.md` — Technical design, data model, API endpoints
+- `BUILD_PROCESS.md` — PyInstaller + Inno Setup build pipeline
+- `INSTALLATION.md` — End-user installation guide
+- `AI_FEATURES_BACKLOG.md` — AI feature designs for future phases

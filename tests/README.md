@@ -145,7 +145,7 @@ This project handles irreplaceable personal memoir data. Tests ensure:
 ## Continuous Integration (Future)
 
 Consider adding GitHub Actions to run tests automatically on every commit:
-- See `docs/TESTING.md` for sample workflow configuration
+- See `docs/DEVELOPMENT.md` for testing commands
 - Automatically verify tests pass before merging
 - Generate coverage reports on each PR
 
