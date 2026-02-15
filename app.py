@@ -647,16 +647,11 @@ def browse_folder():
                 "$f.Description = 'Wähle Speicherort für Memoir-Daten'; "
                 "if ($f.ShowDialog() -eq 'OK') { $f.SelectedPath }"
             )
-            # Hide the PowerShell console window but keep GUI dialogs working
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            startupinfo.wShowWindow = 0  # SW_HIDE
             result = subprocess.run(
-                ['powershell', '-NoProfile', '-Command', ps_script],
+                ['powershell', '-NoProfile', '-WindowStyle', 'Hidden', '-Command', ps_script],
                 capture_output=True,
                 text=True,
-                timeout=300,
-                startupinfo=startupinfo
+                timeout=300
             )
         else:
             # Dev mode: use Python tkinter folder picker script
