@@ -242,12 +242,6 @@ def migrate_data_directory(
         # Verify migration
         is_valid, message = verify_migration(source, destination)
         if not is_valid:
-            # Migration verification failed - clean up destination
-            try:
-                shutil.rmtree(destination)
-            except Exception:
-                pass
-
             stats['error'] = f"Migration verification failed: {message}"
             return False, stats
 
@@ -276,12 +270,6 @@ def migrate_data_directory(
         return True, stats
 
     except Exception as e:
-        # Clean up partially-copied destination so it doesn't block retries
-        try:
-            if destination.exists() and destination != source:
-                shutil.rmtree(destination)
-        except Exception:
-            pass
         stats['error'] = f"Migration failed: {e}"
         return False, stats
 
