@@ -656,21 +656,14 @@ class TestSettingsAPI:
 
         response = client.post('/api/settings/migrate-data',
                                json={
-                                   'new_path': str(destination),
-                                   'keep_backup': True
+                                   'new_path': str(destination)
                                },
                                content_type='application/json')
 
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data['status'] == 'success'
-        assert 'backup_location' in data['data']
-
-        # Backup location should be set
-        if data['data']['backup_location']:
-            from pathlib import Path
-            backup_path = Path(data['data']['backup_location'])
-            # In test environment, backup behavior may vary
+        assert 'files_copied' in data['data']
 
     def test_settings_integration(self, client, tmp_path):
         """Integration test: get settings, validate path, update preferences."""

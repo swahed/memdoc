@@ -129,7 +129,6 @@ def verify_migration(source: Path, destination: Path) -> Tuple[bool, str]:
 def migrate_data_directory(
     source: Path,
     destination: Path,
-    keep_backup: bool = True,
     progress_callback: Optional[Callable[[int, int], None]] = None
 ) -> Tuple[bool, Dict]:
     """
@@ -245,28 +244,7 @@ def migrate_data_directory(
             stats['error'] = f"Migration verification failed: {message}"
             return False, stats
 
-        # Migration successful - handle backup
-        if keep_backup:
-            # Rename source to backup with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_name = f"{source.name}.backup.{timestamp}"
-            backup_path = source.parent / backup_name
-
-            try:
-                shutil.move(str(source), str(backup_path))
-                stats['backup_location'] = str(backup_path)
-            except Exception as e:
-                # Backup failed but data was copied successfully
-                stats['error'] = f"Warning: Could not create backup: {e}"
-                # Don't return False - migration was successful
-        else:
-            # Remove source directory
-            try:
-                shutil.rmtree(source)
-            except Exception as e:
-                stats['error'] = f"Warning: Could not remove source directory: {e}"
-                # Don't return False - migration was successful
-
+        # Migration successful — old folder stays as-is, user can delete it later
         return True, stats
 
     except Exception as e:

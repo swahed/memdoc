@@ -557,7 +557,6 @@ def migrate_data():
     try:
         data = request.json
         new_path_str = data.get('new_path')
-        keep_backup = data.get('keep_backup', True)
 
         if not new_path_str:
             return jsonify({'status': 'error', 'message': 'No path provided'}), 400
@@ -573,8 +572,7 @@ def migrate_data():
         # Perform migration
         success, stats = migrate_data_directory(
             old_path,
-            new_path,
-            keep_backup=keep_backup
+            new_path
         )
 
         if success:
@@ -586,8 +584,7 @@ def migrate_data():
             config['last_migration'] = {
                 'timestamp': datetime.now().isoformat(),
                 'from': str(old_path),
-                'to': str(new_path),
-                'backup_kept': keep_backup
+                'to': str(new_path)
             }
             save_config(config)
 
@@ -599,8 +596,7 @@ def migrate_data():
                 'status': 'success',
                 'data': {
                     'files_copied': stats['files_copied'],
-                    'bytes_copied': stats['bytes_copied'],
-                    'backup_location': stats.get('backup_location')
+                    'bytes_copied': stats['bytes_copied']
                 }
             })
         else:

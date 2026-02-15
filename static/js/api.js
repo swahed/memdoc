@@ -192,14 +192,11 @@ const API = {
     /**
      * Migrate data to new directory
      */
-    async migrateData(newPath, keepBackup = true) {
+    async migrateData(newPath) {
         const response = await fetch('/api/settings/migrate-data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                new_path: newPath,
-                keep_backup: keepBackup
-            })
+            body: JSON.stringify({ new_path: newPath })
         });
         const data = await response.json();
         if (data.status === 'error') {

@@ -956,7 +956,6 @@ class MemDocApp {
 
     async startMigration() {
         const path = document.getElementById('newDataPath').value.trim();
-        const keepBackup = document.getElementById('keepBackup').checked;
         const progressDiv = document.getElementById('migrationProgress');
         const optionsDiv = document.getElementById('migrationOptions');
         const resultDiv = document.getElementById('pathValidationResult');
@@ -972,8 +971,8 @@ class MemDocApp {
 
         if (!confirm(
             'Möchtest du deine Memoiren wirklich verschieben?\n\n' +
-            `Neuer Speicherort: ${path}\n` +
-            `Backup behalten: ${keepBackup ? 'Ja' : 'Nein'}\n\n` +
+            `Neuer Speicherort: ${path}\n\n` +
+            'Die Daten werden kopiert. Der alte Ordner bleibt erhalten.\n' +
             'Die Anwendung wird nach dem Verschieben neu gestartet.'
         )) {
             return;
@@ -986,7 +985,7 @@ class MemDocApp {
             document.getElementById('migrationStatus').textContent = 'Verschiebe Dateien...';
             document.getElementById('migrationProgressBar').style.width = '50%';
 
-            const result = await API.migrateData(path, keepBackup);
+            const result = await API.migrateData(path);
 
             document.getElementById('migrationProgressBar').style.width = '100%';
             document.getElementById('migrationStatus').textContent =

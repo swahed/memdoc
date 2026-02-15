@@ -195,8 +195,7 @@ def test_migrate_with_files(populated_data_dir, tmp_path):
 
     success, stats = migrate_data_directory(
         populated_data_dir,
-        destination,
-        keep_backup=False
+        destination
     )
 
     assert success is True
@@ -214,8 +213,7 @@ def test_migration_preserves_structure(populated_data_dir, tmp_path):
 
     success, stats = migrate_data_directory(
         populated_data_dir,
-        destination,
-        keep_backup=False
+        destination
     )
 
     assert success is True
@@ -229,44 +227,19 @@ def test_migration_preserves_structure(populated_data_dir, tmp_path):
     assert (destination / "images" / "test2.png").is_file()
 
 
-def test_migration_with_backup(populated_data_dir, tmp_path):
-    """Test that backup is created when keep_backup=True."""
+def test_migration_keeps_source(populated_data_dir, tmp_path):
+    """Test that source directory is kept after migration."""
     destination = tmp_path / "destination"
 
     success, stats = migrate_data_directory(
         populated_data_dir,
-        destination,
-        keep_backup=True
+        destination
     )
 
     assert success is True
-    assert stats['backup_location'] is not None
 
-    # Verify backup exists
-    backup_path = Path(stats['backup_location'])
-    assert backup_path.exists()
-    assert backup_path.is_dir()
-    assert "backup" in backup_path.name.lower()
-
-    # Original source should not exist (renamed to backup)
-    assert not populated_data_dir.exists()
-
-
-def test_migration_without_backup(populated_data_dir, tmp_path):
-    """Test that source is removed when keep_backup=False."""
-    destination = tmp_path / "destination"
-
-    success, stats = migrate_data_directory(
-        populated_data_dir,
-        destination,
-        keep_backup=False
-    )
-
-    assert success is True
-    assert stats['backup_location'] is None
-
-    # Source should not exist
-    assert not populated_data_dir.exists()
+    # Source should still exist (old folder stays as-is)
+    assert populated_data_dir.exists()
 
     # Destination should exist with all files
     assert destination.exists()
@@ -285,8 +258,7 @@ def test_migration_integrity_verification(populated_data_dir, tmp_path):
 
     success, stats = migrate_data_directory(
         populated_data_dir,
-        destination,
-        keep_backup=True
+        destination
     )
 
     assert success is True
@@ -365,7 +337,6 @@ def test_migration_progress_callback(populated_data_dir, tmp_path):
     success, stats = migrate_data_directory(
         populated_data_dir,
         destination,
-        keep_backup=False,
         progress_callback=progress_callback
     )
 
@@ -401,8 +372,7 @@ def test_migration_preserves_timestamps(populated_data_dir, tmp_path):
 
     success, stats = migrate_data_directory(
         populated_data_dir,
-        destination,
-        keep_backup=True
+        destination
     )
 
     assert success is True
@@ -429,8 +399,7 @@ def test_migration_creates_nested_directories(tmp_path):
 
     success, stats = migrate_data_directory(
         source,
-        destination,
-        keep_backup=False
+        destination
     )
 
     assert success is True
