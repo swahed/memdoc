@@ -513,6 +513,7 @@ def generate_memoir_preview_html(memoir_handler) -> str:
         """
 
     # Build chapters HTML
+    import re
     chapters_html = ""
     for idx, chapter_info in enumerate(chapters):
         chapter = memoir_handler.load_chapter(chapter_info['id'])
@@ -541,7 +542,6 @@ def generate_memoir_preview_html(memoir_handler) -> str:
             html_content = html_content.replace('src="../images/', 'src="/api/images/')
 
             # Process kramdown-style class attributes
-            import re
             pattern = r'(<img[^>]*>)(<br\s*/?>)?\s*\{:\s*([^}]+)\}\s*(<br\s*/?>)?'
             def add_classes_to_img(match):
                 img_tag = match.group(1)
