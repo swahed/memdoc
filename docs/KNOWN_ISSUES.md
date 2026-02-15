@@ -2,24 +2,6 @@
 
 ## Open Issues
 
-### Preview rendering broken (v1.3.2 regression)
-
-**Status:** Open — introduced in v1.3.2
-**Severity:** High (core feature broken)
-
-**Symptom:** Kapitel-Vorschau shows an error. The regex added in v1.3.2 to fix lenient bold/italic (`**word **` → `**word**`) in `pdf_generator.py` likely causes a Python exception.
-
-**Root cause:** The regex `(\*{1,2})(\S(?:.*?\S)?)\s+(\1)` in `markdown_to_html()` and `generate_memoir_preview_html()` may be failing on certain content patterns.
-
-**Fix:** Debug the regex or replace with simpler pre-processing. Test with the "Foosen" chapter content:
-```
-this is a text. I might **make ** this bold or even *underline *it though i *don't *know how to do that in markdown-
-```
-
-**Files:** `core/pdf_generator.py` (lines ~121 and ~525)
-
----
-
 ### Single-instance check not working
 
 **Status:** Open — implemented in v1.3.1, not working in installed build
@@ -62,7 +44,28 @@ this is a text. I might **make ** this bold or even *underline *it though i *don
 
 ---
 
+### Installer can't kill running MemDoc during upgrade
+
+**Status:** Open (low priority)
+**Severity:** Low (cosmetic — user can kill manually)
+
+**Symptom:** When upgrading (installing over existing version), the installer detects running MemDoc processes but fails to close them automatically. The `[UninstallRun]` section has a `taskkill` but the install step does not.
+
+**Fix:** Add a pre-install taskkill via Inno Setup `[Code]` section (`CurStepChanged(ssInstall)`).
+
+**Files:** `installer.iss`
+
+---
+
 ## Resolved Issues
+
+### Fixed in v1.3.4: Preview rendering broken (v1.3.2 regression)
+
+**Root cause:** The regex `(\*{1,2})(\S(?:.*?\S)?)\s+(\1)` in `markdown_to_html()` and `generate_memoir_preview_html()` caused catastrophic backtracking on complex content with many asterisks.
+
+**Fix:** Replaced with simpler `re.sub(r'\s+(\*{1,2})(?=\s|$|[.,;:!?\)])', r'\1', ...)` in both locations. Added None/empty guard and 7 unit tests.
+
+---
 
 ### Fixed in v1.3.2: Bold/italic toolbar wraps trailing whitespace
 

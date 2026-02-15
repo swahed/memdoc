@@ -1,34 +1,15 @@
 # TODO — Next Session
 
-**Date written:** 2026-02-09 (late night)
-**Current version:** v1.3.2
-**Context:** User tested v1.3.2 installed build and found 3 bugs.
+**Date written:** 2026-02-15
+**Current version:** v1.3.4
+**Context:** v1.3.4 fixed the preview regression. Two bugs remain.
 
 ---
 
-## Bug 1: Preview rendering broken (HIGH PRIORITY)
+## ~~Bug 1: Preview rendering broken~~ — FIXED in v1.3.4
 
-The Kapitel-Vorschau now shows an error. This is a **regression introduced in v1.3.2** by the regex added to fix lenient bold/italic markers.
-
-**What was added (v1.3.2):**
-```python
-# In pdf_generator.py, markdown_to_html() and generate_memoir_preview_html()
-import re
-markdown_content = re.sub(r'(\*{1,2})(\S(?:.*?\S)?)\s+(\1)', r'\1\2\3', markdown_content)
-```
-
-**What to do:**
-1. Reproduce the error: start app with `py app.py --browser --debug`, open Kapitel-Vorschau
-2. Check Flask console for the Python traceback
-3. Test the regex with the problematic content:
-   ```
-   this is a text. I might **make ** this bold or even *underline *it though i *don't *know how to do that in markdown-
-   ```
-4. The regex likely chokes on unmatched/overlapping markers. Consider a simpler approach:
-   - Just strip spaces before `**` and `*` closers: `re.sub(r'\s+(\*{1,2})(\s|$)', r'\1\2', text)`
-   - Or: only fix cases where there's a matching opener
-5. Fix is needed in TWO places in pdf_generator.py (line ~121 and ~525)
-6. Run tests: `py -m pytest tests/test_pdf_generator.py -v`
+Replaced catastrophic-backtracking regex with simpler `re.sub(r'\s+(\*{1,2})(?=\s|$|[.,;:!?\)])', r'\1', ...)`.
+Fixed in both `markdown_to_html()` and `generate_memoir_preview_html()`. Added None guard and 7 unit tests.
 
 ---
 
@@ -87,12 +68,19 @@ result = subprocess.run(
 
 ---
 
+## Additional: Add taskkill to installer install step
+
+The installer's `[UninstallRun]` kills MemDoc.exe before uninstall, but the `[Run]` (install) section does not.
+When upgrading, running MemDoc instances can block the installer from replacing the exe.
+Add a `[Code]` section or pre-install `[InstallRun]` with `taskkill /IM MemDoc.exe /F`.
+
+---
+
 ## After fixing bugs
 
 1. Run full test suite: `py -m pytest tests/ -q --ignore=tests/test_updater.py -k "not test_get_prompts"`
-2. Bump version to v1.3.3
-3. Commit, tag, push
-4. Test installed build again with the test plan below
+2. Bump version, commit, tag, push (CI builds installer automatically)
+3. Test installed build again with the test plan below
 
 ---
 

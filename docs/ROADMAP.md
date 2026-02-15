@@ -243,12 +243,13 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 - ✅ Phase 3: Deployment - Installer, updates, data management, CI/CD
 - ✅ Phase 5: Images & Media with quality checks
 
-**Current Version:** v1.3.2
+**Current Version:** v1.3.4
 
 **Open Bugs (see KNOWN_ISSUES.md):**
-1. Preview rendering broken (v1.3.2 regex regression)
+1. ~~Preview rendering broken~~ — FIXED in v1.3.4
 2. Single-instance check not working in installed build
 3. Folder picker shows visible PowerShell window (low priority)
+4. Installer can't kill running MemDoc during upgrade (low priority)
 
 **Future Work:**
 - Phase 4: Enhanced writing tools (WYSIWYG, search, event tagging)
@@ -256,5 +257,5 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 - LLM-based writing assistant (needs MVP design)
 
 **Testing Status:**
-- 159 unit tests passing, 8 E2E tests (skipped in CI), 2 pre-existing failures
+- 166 unit tests passing, 8 E2E tests (skipped in CI), 3 pre-existing failures
 - All features tested individually before commit
