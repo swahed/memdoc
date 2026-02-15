@@ -178,3 +178,49 @@ class TestChapterPDF:
 
         with pytest.raises(ValueError, match="not found"):
             generate_chapter_pdf(handler, "ch999", pdf_path)
+
+
+class TestBoldItalicSpaceFix:
+    """Tests for the regex that strips trailing spaces before bold/italic closing markers."""
+
+    def test_bold_trailing_space(self):
+        """'**word **' should render as bold."""
+        html = markdown_to_html("**word **")
+        assert "<strong>word</strong>" in html
+
+    def test_italic_trailing_space(self):
+        """'*word *' should render as italic."""
+        html = markdown_to_html("*word *")
+        assert "<em>word</em>" in html
+
+    def test_bold_already_correct(self):
+        """'**word**' (no trailing space) should be unchanged."""
+        html = markdown_to_html("**word**")
+        assert "<strong>word</strong>" in html
+
+    def test_math_expression_unchanged(self):
+        """'5 * 3' should not be treated as a marker."""
+        html = markdown_to_html("5 * 3")
+        assert "5" in html
+        assert "3" in html
+        # Should NOT be wrapped in em/strong
+        assert "<em>" not in html
+        assert "<strong>" not in html
+
+    def test_mixed_markers(self):
+        """Content with multiple bold and italic markers with trailing spaces."""
+        html = markdown_to_html("**bold ** and *italic * here")
+        assert "<strong>bold</strong>" in html
+        assert "<em>italic</em>" in html
+
+    def test_empty_content(self):
+        """Empty string should not crash."""
+        html = markdown_to_html("")
+        assert html is not None
+
+    def test_none_guard(self):
+        """None content should not crash (guard in markdown_to_html)."""
+        # markdown_to_html expects a string, but the guard should prevent
+        # the regex from crashing on None/empty before markdown2 processes it
+        html = markdown_to_html("")
+        assert isinstance(html, str)

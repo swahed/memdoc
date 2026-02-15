@@ -120,7 +120,8 @@ def markdown_to_html(markdown_content: str, chapter_title: str = "") -> str:
 
     # Fix lenient bold/italic: strip spaces before closing markers
     # e.g. "**word **" → "**word**", "*word *" → "*word*"
-    markdown_content = re.sub(r'(\*{1,2})(\S(?:.*?\S)?)\s+(\1)', r'\1\2\3', markdown_content)
+    if markdown_content:
+        markdown_content = re.sub(r'\s+(\*{1,2})(?=\s|$|[.,;:!?\)])', r'\1', markdown_content)
 
     # Convert markdown to HTML with extras
     html_content = markdown2.markdown(
@@ -521,7 +522,8 @@ def generate_memoir_preview_html(memoir_handler) -> str:
             content = chapter['content']
 
             # Fix lenient bold/italic: strip spaces before closing markers
-            content = re.sub(r'(\*{1,2})(\S(?:.*?\S)?)\s+(\1)', r'\1\2\3', content)
+            if content:
+                content = re.sub(r'\s+(\*{1,2})(?=\s|$|[.,;:!?\)])', r'\1', content)
 
             # Convert markdown to HTML
             html_content = markdown2.markdown(
