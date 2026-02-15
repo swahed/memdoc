@@ -931,6 +931,32 @@ def initialize_memoir_handler():
     return MemoirHandler(data_dir=str(data_dir))
 
 
+def _find_app_browser():
+    """Find Chrome or Edge for app mode."""
+    browser_paths = [
+        (r"C:\Program Files\Google\Chrome\Application\chrome.exe", "Chrome"),
+        (r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe", "Chrome"),
+        (os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"), "Chrome"),
+        (r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", "Edge"),
+        (os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"), "Edge"),
+    ]
+    for path, name in browser_paths:
+        if os.path.exists(path):
+            return path, name
+    return None, None
+
+
+def _open_in_app_mode(url):
+    """Open URL in Chrome/Edge app mode, or fall back to default browser."""
+    import subprocess
+    browser_exe, browser_name = _find_app_browser()
+    if browser_exe:
+        subprocess.Popen([browser_exe, f'--app={url}'])
+    else:
+        import webbrowser
+        webbrowser.open(url)
+
+
 def check_single_instance():
     """Use Windows named mutex to enforce single instance.
     Returns True if this is the only instance, False if another is already running.
@@ -954,9 +980,8 @@ def main():
 
     # Check if another instance is already running (Windows named mutex)
     if not check_single_instance():
-        print("MemDoc is already running. Opening in browser...")
-        import webbrowser
-        webbrowser.open(f'http://localhost:{port}')
+        print("MemDoc is already running. Opening new window...")
+        _open_in_app_mode(f'http://localhost:{port}')
         sys.exit(0)
 
     # Initialize memoir handler with validation
@@ -1002,24 +1027,7 @@ def main():
         # Give Flask a moment to start
         time.sleep(2)
 
-        # Find Chrome or Edge executable (Edge is installed by default on Windows)
-        browser_paths = [
-            # Chrome
-            (r"C:\Program Files\Google\Chrome\Application\chrome.exe", "Chrome"),
-            (r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe", "Chrome"),
-            (os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"), "Chrome"),
-            # Edge (installed by default on Windows 10+)
-            (r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", "Edge"),
-            (os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"), "Edge"),
-        ]
-
-        browser_exe = None
-        browser_name = None
-        for path, name in browser_paths:
-            if os.path.exists(path):
-                browser_exe = path
-                browser_name = name
-                break
+        browser_exe, browser_name = _find_app_browser()
 
         browser_process = None
         if not browser_exe:

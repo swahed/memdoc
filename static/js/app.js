@@ -16,6 +16,10 @@ class MemDocApp {
         this.isTestBuild = false;
         this.isDevMode = false;
 
+        // Cross-window sync via BroadcastChannel
+        this.syncChannel = new BroadcastChannel('memdoc-sync');
+        this.syncChannel.onmessage = (event) => this.handleSyncMessage(event.data);
+
         // Get DOM elements
         this.chapterList = document.getElementById('chapterList');
         this.btnNewChapter = document.getElementById('btnNewChapter');
@@ -67,8 +71,25 @@ class MemDocApp {
                         item.classList.remove('active');
                     }
                 });
+
+                // Notify other windows
+                this.syncChannel.postMessage({ type: 'chapter-saved', chapterId: currentChapter });
             }
         };
+    }
+
+    async handleSyncMessage(data) {
+        // Another window saved or changed chapters — reload to stay in sync
+        if (data.type === 'chapter-saved') {
+            // Reload chapter list (word counts may have changed)
+            await this.loadChapters(false);
+            // If we're viewing the same chapter, reload its content
+            if (this.editor.currentChapterId === data.chapterId) {
+                await this.editor.loadChapter(data.chapterId);
+            }
+        } else if (data.type === 'chapters-changed') {
+            await this.loadChapters(false);
+        }
     }
 
     setupEventListeners() {
@@ -213,6 +234,7 @@ class MemDocApp {
             await this.loadChapters(false);
             // Select the new chapter and focus the title input
             this.selectChapter(result.id, true);
+            this.syncChannel.postMessage({ type: 'chapters-changed' });
         } catch (error) {
             console.error('Error creating chapter:', error);
             alert(i18n.t('failedToCreateChapter') + ': ' + error.message);
@@ -247,6 +269,7 @@ class MemDocApp {
             if (currentChapter) {
                 this.selectChapter(currentChapter);
             }
+            this.syncChannel.postMessage({ type: 'chapters-changed' });
         } catch (error) {
             console.error('Error editing chapter:', error);
             alert(i18n.t('failedToEditChapter') + ': ' + error.message);
@@ -288,6 +311,7 @@ class MemDocApp {
 
             // Reload chapters
             await this.loadChapters();
+            this.syncChannel.postMessage({ type: 'chapters-changed' });
         } catch (error) {
             console.error('Error deleting chapter:', error);
             alert(i18n.t('failedToDeleteChapter') + ': ' + error.message);
