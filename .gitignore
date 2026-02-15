@@ -34,6 +34,8 @@ desktop.ini
 dist/
 build/
 *.egg-info/
+*.spec
+nul
 
 # Temporary files
 *.tmp
