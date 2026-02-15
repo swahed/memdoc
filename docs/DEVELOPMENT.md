@@ -190,10 +190,6 @@ Let's say we want to add "word count per chapter":
 
 ## Testing Strategy
 
-### ⚠️ PRIORITY: Add Automated Tests Before Resuming Development
-
-**Action Required:** Before implementing new features, add unit and end-to-end tests to prevent regressions.
-
 ### Unit Testing (Backend)
 
 Use `pytest` for Python backend tests:
@@ -428,26 +424,13 @@ No need for advanced optimization or scaling."
 
 ### For Mom's Computer
 
-1. **Install Python**: Download from python.org
-2. **Clone repo**: Use GitHub Desktop or command line
-3. **Setup OneDrive sync**: Point `data/` folder to OneDrive
-4. **Create desktop shortcut**:
-   ```bash
-   # Windows: Create .bat file
-   @echo off
-   cd C:\path\to\memdoc
-   python app.py
-   ```
-5. **First run**: Run setup to create data directory structure
+1. Download `MemDoc-Setup.exe` from GitHub Releases
+2. Run installer (German-language wizard)
+3. Launch MemDoc from Start Menu or Desktop shortcut
+4. Choose data folder (default: `~/Documents/MemDoc`)
+5. Optionally sync data folder via OneDrive for backup
 
-### Desktop App Packaging (Future)
-
-When using Eel for desktop mode:
-```bash
-# Package with PyInstaller
-pip install pyinstaller
-pyinstaller --onefile --windowed app.py
-```
+See `INSTALLATION.md` for detailed instructions.
 
 ---
 

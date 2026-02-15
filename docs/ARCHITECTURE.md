@@ -9,10 +9,9 @@ MemDoc is a single-user memoir writing application with a web-based UI and Pytho
 ### Backend
 - **Python 3.10+**: Main programming language
 - **Flask**: Lightweight web framework for API endpoints
-- **Eel**: Python-to-JavaScript bridge for desktop app mode
 - **Pillow**: Image processing and resolution checking
-- **WeasyPrint**: HTML/CSS to PDF conversion with print quality
 - **PyYAML**: YAML frontmatter parsing
+- **PyInstaller**: Bundled as single .exe for distribution
 
 ### Frontend
 - **Vanilla JavaScript**: No frameworks - keep it simple
@@ -37,7 +36,7 @@ MemDoc is a single-user memoir writing application with a web-based UI and Pytho
 │  │  - Writing prompts sidebar                │  │
 │  │  - Image upload UI                        │  │
 │  └─────────────────┬─────────────────────────┘  │
-│                    │ Eel/Fetch API                │
+│                    │ Fetch API                      │
 │  ┌─────────────────▼─────────────────────────┐  │
 │  │          Flask Backend (Python)           │  │
 │  │  ┌────────────────────────────────────┐  │  │
@@ -91,10 +90,12 @@ memdoc/
 ├── core/                       # Python backend modules
 │   ├── __init__.py
 │   ├── markdown_handler.py     # Parse/save markdown + YAML frontmatter
-│   ├── timeline.py             # Extract events, generate timeline
-│   ├── pdf_generator.py        # HTML to PDF conversion
+│   ├── pdf_generator.py        # HTML preview and markdown conversion
 │   ├── image_handler.py        # Image upload, resolution check, positioning
-│   └── search.py               # Full-text search across chapters
+│   ├── config_manager.py       # User config at ~/.memdoc/config.json
+│   ├── data_migrator.py        # Safe data directory migration
+│   ├── updater.py              # GitHub release update checker
+│   └── version.py              # VERSION constant, build type detection
 │
 ├── static/                     # Frontend static files
 │   ├── css/
@@ -113,16 +114,18 @@ memdoc/
 │   └── pdf_template.html      # PDF export template
 │
 ├── prompts/
-│   └── writing_prompts.json   # Fixed writing prompts (no AI API)
+│   └── writing_prompts_de.json  # German writing prompts
 │
-└── data/                       # User content (git-ignored, OneDrive-synced)
+├── build.py                   # PyInstaller build script
+├── installer.iss              # Inno Setup installer script
+│
+└── ~/Documents/MemDoc/        # User data (configurable location)
     ├── memoir.json            # Memoir metadata & chapter order
-    ├── config.json            # User preferences
     ├── chapters/              # Individual chapter files
     │   ├── ch001-early-years.md
-    │   ├── ch002-college-days.md
     │   └── ...
-    └── images/                # Uploaded images
+    ├── images/                # Uploaded images
+    └── deleted/               # Archived deleted chapters
 ```
 
 ## Data Model
@@ -259,17 +262,11 @@ Images can have positioning attributes:
 - **Simple**: Easy to parse and generate
 - **Extensible**: YAML frontmatter for metadata
 
-### 2. Why Flask + Eel (not pure Electron)?
-- **Keep it Python**: Single language for backend and app wrapper
-- **Lighter**: Eel is much smaller than Electron
-- **Development workflow**: Run in browser during dev, wrap for production
+### 2. Why Flask + Chrome App Mode (not Electron)?
+- **Keep it Python**: Single language for backend
+- **Lighter**: Chrome app mode gives native-like feel without Electron overhead
+- **Development workflow**: Run in browser during dev, Chrome app mode in production
 - **Simple deployment**: No Node.js required
-
-### 3. Why WeasyPrint for PDF?
-- **CSS-based**: Reuse web styles for print
-- **Python-native**: No external dependencies
-- **Print quality**: Proper page breaks, margins, page numbers
-- **Open source**: No licensing costs
 
 ### 4. Why Local Storage (vs Database)?
 - **Simplicity**: No database setup
@@ -289,8 +286,7 @@ Images can have positioning attributes:
 - **Privacy**: No personal memoir content sent to external APIs
 - **Reliability**: No API costs or rate limits
 - **Offline**: Works without internet
-- **Simplicity**: No API key management
-- **Future-proof**: Can add AI later if desired
+- **Future-proof**: AI features planned for later (see `AI_FEATURES_BACKLOG.md`)
 
 ## Component Responsibilities
 
@@ -304,23 +300,11 @@ Images can have positioning attributes:
 - Validate file structure and frontmatter
 - Handle chapter reordering in memoir.json
 
-### timeline.py
-- Scan all chapter files in chapters/ directory
-- Extract events from each chapter's frontmatter
-- Aggregate and sort events chronologically
-- Generate timeline HTML with chapter links
-- Format dates for display
-
 ### pdf_generator.py
-- Read memoir.json for chapter order
-- Load all chapter files in correct sequence
-- Convert each chapter's markdown to HTML
-- Assemble chapters into single document
-- Generate cover page from memoir.json metadata
-- Create table of contents from chapter titles
-- Apply print CSS styles
-- Add page numbers
-- Export to PDF via WeasyPrint
+- Convert markdown to HTML for preview
+- Generate chapter preview HTML
+- Generate full memoir preview HTML (cover + all chapters)
+- Apply print-optimized CSS styles
 
 ### image_handler.py
 - Process uploaded images
@@ -330,12 +314,26 @@ Images can have positioning attributes:
 - Manage image storage in data/images/
 - Track image usage across chapters
 
-### search.py
-- Index all chapter files on startup
-- Perform full-text search across all chapters
-- Return results with chapter context
-- Highlight search terms
-- Update index when chapters are modified
+### config_manager.py
+- Load/save user config from `~/.memdoc/config.json`
+- First-run detection
+- Data directory management
+
+### data_migrator.py
+- Safe data migration between directories
+- Integrity verification (file count + checksum sampling)
+- Progress tracking via callback
+
+### updater.py
+- Check GitHub releases for updates
+- Download installer with progress tracking
+- Backup current version before update
+- Apply update (launch Inno Setup in silent mode)
+- Rollback to previous version
+
+### version.py
+- VERSION constant and RELEASE_DATE
+- Build type detection (dev vs production)
 
 ## API Endpoints
 
@@ -349,24 +347,30 @@ Images can have positioning attributes:
 - `DELETE /api/chapters/<id>` - Delete chapter file
 - `POST /api/chapters/reorder` - Reorder chapters in memoir.json
 
-### Events & Timeline
-- `GET /api/events` - Get all events
-- `POST /api/events` - Add new event
-- `GET /api/timeline` - Get generated timeline HTML
-
 ### Images
 - `POST /api/images/upload` - Upload image
 - `GET /api/images/<filename>` - Retrieve image
-- `DELETE /api/images/<filename>` - Delete image
 
-### Search & Export
-- `GET /api/search?q=<query>` - Search content
-- `GET /api/export/pdf` - Generate and download PDF
-- `GET /api/preview` - Get preview HTML
+### Settings & Config
+- `GET /api/settings` - Get app settings
+- `PUT /api/settings/preferences` - Update preferences
+- `POST /api/settings/validate-path` - Validate data directory path
+- `POST /api/settings/migrate-data` - Migrate data to new directory
+- `POST /api/settings/browse-folder` - Open native folder picker
+- `GET /api/config/is-first-run` - Check if first run
+- `POST /api/config/initial-setup` - Complete initial setup
 
-### Prompts
-- `GET /api/prompts` - Get writing prompts
-- `GET /api/prompts/random` - Get random prompt
+### Updates
+- `GET /api/version` - Current version info
+- `GET /api/updates/check` - Check for updates
+- `POST /api/updates/download` - Start download
+- `GET /api/updates/download/status` - Download progress
+- `POST /api/updates/install` - Install and restart
+- `GET /api/updates/backups` - List backups
+- `POST /api/updates/rollback` - Rollback to version
+
+### Statistics & Preview
+- `GET /api/statistics` - Word count stats
 
 ## Security Considerations
 

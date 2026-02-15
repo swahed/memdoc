@@ -18,10 +18,9 @@
 
 ### Method 1: Download Release (Recommended)
 
-1. **Download MemDoc.exe**
+1. **Download MemDoc-Setup.exe**
    - Visit: https://github.com/swahed/memdoc/releases/latest
-   - Download `MemDoc.exe` (not MemDoc-TEST.exe)
-   - File size: ~27 MB
+   - Download `MemDoc-Setup.exe`
 
 2. **Handle Windows SmartScreen Warning**
    - Windows may show: "Windows protected your PC"
@@ -29,16 +28,17 @@
    - Click "Run anyway"
    - **Note:** Warning appears because .exe is not code-signed (costs $200-500/year)
 
-3. **Run MemDoc.exe**
+3. **Run MemDoc-Setup.exe**
    - Double-click the downloaded file
-   - Or: Right-click → Run as administrator (if needed)
+   - Follow the German-language install wizard
+   - Installs to `C:\Program Files\MemDoc`, creates desktop + Start Menu shortcuts
 
 4. **Choose Data Location (First Run)**
    - App will prompt for memoir storage location
    - **Recommended:** Choose a OneDrive folder for automatic backup
    - Example: `C:\Users\YourName\OneDrive\MemDoc`
    - Click "Browse" to select folder
-   - Enter subfolder name (e.g., "MemDoc" or "My Memoir")
+   - Default: `~/Documents/MemDoc`
 
 5. **Start Writing**
    - App opens in Chrome/Edge (looks like a desktop app)
@@ -122,8 +122,7 @@ Example:
   "last_migration": {
     "timestamp": "2025-12-26T10:30:00",
     "from": "C:\\Users\\Name\\Desktop\\MemDoc",
-    "to": "C:\\Users\\Name\\OneDrive\\MemDoc",
-    "backup_kept": true
+    "to": "C:\\Users\\Name\\OneDrive\\MemDoc"
   }
 }
 ```
@@ -182,42 +181,31 @@ If you need to change where your memoir is stored:
    - Choose or create new folder
    - Must be empty or valid MemDoc folder
 
-4. **Migration Options**
-   - ✅ **Keep backup:** Recommended (keeps old folder as backup)
-   - ❌ **Delete old data:** Only if absolutely sure
-
-5. **Migrate**
-   - Click "Move Data"
+4. **Migrate**
+   - Click "Daten verschieben"
    - Wait for completion (status shown)
+   - Old folder stays as-is (you can delete it later)
    - **App restarts automatically**
 
-6. **Verify**
+5. **Verify**
    - Check new location has all chapters
-   - Delete old backup when confident
 
 ## Uninstallation
 
 ### Remove Application
-1. Delete `MemDoc.exe` from Downloads folder
+1. Windows Settings > Apps > MemDoc > Uninstall
+   - Or: Run `C:\Program Files\MemDoc\unins000.exe`
+   - Uninstaller kills running MemDoc processes automatically
 
-### Remove Configuration
-2. Delete folder: `%APPDATA%\MemDoc\`
-   - Contains config.json
-   - Contains update backups
+### Remove Configuration (optional)
+2. Delete folder: `%USERPROFILE%\.memdoc\`
+   - Contains `config.json`
 
 ### Keep or Remove Data
 3. **Keep your memoir:** Leave data folder alone
-4. **Delete everything:** Delete your chosen data folder
-   - ⚠️ WARNING: This deletes all your writing!
+4. **Delete everything:** Delete your chosen data folder (default: `~/Documents/MemDoc`)
+   - WARNING: This deletes all your writing!
    - Make sure you have backups first
-
-### Complete Removal
-```
-C:\Users\YourName\
-├── Downloads\MemDoc.exe          [DELETE]
-├── AppData\Roaming\MemDoc\       [DELETE]
-└── OneDrive\MemDoc\              [KEEP or DELETE]
-```
 
 ## Troubleshooting
 

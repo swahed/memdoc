@@ -39,11 +39,10 @@
    - UX inspired by iA Writer (clean, distraction-free)
    - Easy enough for non-technical users, but mom can code if needed
 
-4. **Git as Distribution**
-   - Git clone for installation
-   - Git pull for updates
-   - No complex deployment or packaging (initially)
-   - Mom might contribute code herself
+4. **Proper Distribution**
+   - Inno Setup installer (`MemDoc-Setup.exe`)
+   - GitHub Actions CI/CD builds releases automatically
+   - In-app update mechanism with download and silent install
 
 ---
 
@@ -84,13 +83,11 @@
 
 **Python**: User has .NET/JS experience but wanted to learn Python. Keep it beginner-friendly.
 
-**Flask + Eel**: Lightweight, allows browser development then desktop deployment without Electron's overhead.
+**Flask**: Lightweight web framework. Desktop mode uses Chrome/Edge app mode (no URL bar).
 
 **Markdown storage**: Human-readable, git-friendly, not locked into proprietary format. Mom can edit files directly if needed.
 
 **No database**: Overkill for 1-2 users. Files are simpler, more transparent, easier to backup.
-
-**Fixed prompts (no AI API)**: Privacy concern - don't send personal memoir content to external APIs. Can add AI features later if requested.
 
 **iA Writer aesthetic**: Clean, typography-focused, distraction-free writing environment. Mom likes this style.
 
@@ -114,26 +111,6 @@
 ---
 
 ## Common AI Assistant Tasks
-
-### 🚨 PRIORITY WHEN RESUMING WORK
-
-**Before implementing any new features, add unit and end-to-end tests!**
-
-The project is at a good checkpoint with Phase 1 mostly complete. This is the ideal time to add test coverage before continuing development. See `docs/TESTING.md` for detailed guidance.
-
-**Next steps when resuming:**
-1. Set up pytest and playwright
-2. Write unit tests for `core/markdown_handler.py` (most critical)
-3. Write E2E tests for chapter workflow
-4. Aim for 70%+ test coverage before Phase 2
-
-**Why this is critical:**
-- Mom's memoir data is irreplaceable - prevent data loss bugs
-- Markdown file format must stay valid - test persistence
-- Auto-save is complex - test timing and edge cases
-- Prevent regressions as features evolve
-
----
 
 ### When Helping with This Project
 
@@ -236,20 +213,10 @@ function save(id,c){fetch(`/api/chapters/${id}`,{method:'POST',body:JSON.stringi
 
 ### Typical Development State
 
-**Early stage (Phase 1-2):**
-- Basic features being built
-- Focus on core writing experience
-- Many features from ROADMAP.md not yet implemented
-
-**Later stage (Phase 3-5):**
-- Core features done
-- Adding polish and export capabilities
-- Focus on UX refinement
-
-**Maintenance:**
-- All features complete
-- Bug fixes and small improvements
-- User-requested enhancements
+**Current state (v1.4.0):**
+- Phases 1, 2, 3, 5 complete (writing, localization, deployment, images)
+- App is ready for daily use
+- Future: Phase 4 (WYSIWYG), Phase 6 (timeline), AI features
 
 ---
 

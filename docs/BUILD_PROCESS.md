@@ -146,8 +146,8 @@ prompts_file = get_resource_path('prompts/writing_prompts_de.json')
 ### Version Location
 `core/version.py`:
 ```python
-VERSION = "1.1.0"
-RELEASE_DATE = "2025-12-26"
+VERSION = "1.4.0"
+RELEASE_DATE = "2026-02-15"
 GITHUB_REPO = "swahed/memdoc"
 ```
 

@@ -70,7 +70,7 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 - [x] Configurable data storage location
   - Settings UI to choose data folder
   - OneDrive backup instructions
-  - Data migration tool with backup option
+  - Data migration with integrity verification (old folder stays as-is)
   - Default: ~/Documents/MemDoc (user-writable)
 - [x] Update mechanism
   - Check for updates from GitHub releases
@@ -85,6 +85,10 @@ Build in phases, delivering working functionality at each stage. Each phase shou
   - PyInstaller single-exe build
   - Inno Setup installer (German UI, shortcuts, Program Files)
   - Chrome app mode with process cleanup on close (v1.2.1)
+  - Single-instance enforcement via Windows named mutex (v1.3.6)
+  - Multi-window support: second instance opens Chrome/Edge app mode (v1.4.0)
+  - Cross-window sync via BroadcastChannel API (v1.4.0)
+  - Installer kills running MemDoc before upgrade (v1.3.6)
 
 **Deliverable:** Mom can safely install, update, and backup her work. ✅
 
@@ -240,22 +244,20 @@ Build in phases, delivering working functionality at each stage. Each phase shou
 **Completed Phases:**
 - ✅ Phase 1: MVP - Core writing experience with tests
 - ✅ Phase 2: Localization & Polish - German UI, cover page, full memoir preview
-- ✅ Phase 3: Deployment - Installer, updates, data management, CI/CD
+- ✅ Phase 3: Deployment - Installer, updates, data management, multi-window, CI/CD
 - ✅ Phase 5: Images & Media with quality checks
 
-**Current Version:** v1.3.4
+**Current Version:** v1.4.0
 
-**Open Bugs (see KNOWN_ISSUES.md):**
-1. ~~Preview rendering broken~~ — FIXED in v1.3.4
-2. Single-instance check not working in installed build
-3. Folder picker shows visible PowerShell window (low priority)
-4. Installer can't kill running MemDoc during upgrade (low priority)
+**Open Issues (see KNOWN_ISSUES.md):**
+- PowerShell console visible during folder pick (cosmetic, parked)
+- Uninstaller leaves `~/.memdoc` folder (parked, safer to leave)
 
 **Future Work:**
 - Phase 4: Enhanced writing tools (WYSIWYG, search, event tagging)
 - Phase 6: Timeline generation
-- LLM-based writing assistant (needs MVP design)
+- AI features (see `AI_FEATURES_BACKLOG.md`)
 
 **Testing Status:**
-- 166 unit tests passing, 8 E2E tests (skipped in CI), 3 pre-existing failures
+- 165 unit tests passing, 8 E2E tests (skipped in CI), 1 pre-existing failure
 - All features tested individually before commit
