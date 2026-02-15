@@ -58,3 +58,14 @@ Filename: "taskkill"; Parameters: "/IM {#MyAppExeName} /F"; Flags: runhidden wai
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+begin
+  if CurStep = ssInstall then
+  begin
+    Exec('taskkill', '/IM MemDoc.exe /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+end;

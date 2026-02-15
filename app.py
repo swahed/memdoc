@@ -651,7 +651,8 @@ def browse_folder():
                 ['powershell', '-NoProfile', '-Command', ps_script],
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=300,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
         else:
             # Dev mode: use Python tkinter folder picker script
@@ -931,15 +932,18 @@ def initialize_memoir_handler():
     return MemoirHandler(data_dir=str(data_dir))
 
 
-def is_port_in_use(port: int) -> bool:
-    """Check if a port is already in use (another instance running)."""
-    import socket
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        try:
-            s.bind(('localhost', port))
-            return False
-        except OSError:
-            return True
+def check_single_instance():
+    """Use Windows named mutex to enforce single instance.
+    Returns True if this is the only instance, False if another is already running.
+    """
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    mutex = kernel32.CreateMutexW(None, False, "MemDocSingleInstance")
+    last_error = ctypes.get_last_error()
+    # ERROR_ALREADY_EXISTS = 183
+    if last_error == 183:
+        return False  # Another instance is running
+    return True  # We are the first instance
 
 
 def main():
@@ -948,8 +952,8 @@ def main():
 
     port = 5000
 
-    # Check if another instance is already running
-    if is_port_in_use(port):
+    # Check if another instance is already running (Windows named mutex)
+    if not check_single_instance():
         print("MemDoc is already running. Opening in browser...")
         import webbrowser
         webbrowser.open(f'http://localhost:{port}')
