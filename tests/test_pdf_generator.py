@@ -10,34 +10,34 @@ from core.pdf_generator import (
     markdown_to_html,
     generate_chapter_preview_html,
     generate_chapter_pdf,
-    check_weasyprint_available
+    check_pdf_available
 )
 
-# Check if WeasyPrint can import properly (needs GTK libraries on Windows)
+# Check if xhtml2pdf is importable
 try:
-    from weasyprint import HTML
-    WEASYPRINT_AVAILABLE = True
-except (OSError, ImportError):
-    WEASYPRINT_AVAILABLE = False
+    from xhtml2pdf import pisa
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
 
 
 class TestPDFDependencyCheck:
     """Tests for PDF dependency checking."""
 
-    def test_check_weasyprint_returns_tuple(self):
-        """Test that check_weasyprint_available returns a tuple."""
-        is_available, message = check_weasyprint_available()
+    def test_check_pdf_available_returns_tuple(self):
+        """Test that check_pdf_available returns a tuple."""
+        is_available, message = check_pdf_available()
         assert isinstance(is_available, bool)
         assert isinstance(message, str)
 
-    def test_check_weasyprint_availability(self):
-        """Test WeasyPrint availability matches our detection."""
-        is_available, message = check_weasyprint_available()
-        assert is_available == WEASYPRINT_AVAILABLE
+    def test_check_pdf_availability(self):
+        """Test xhtml2pdf availability matches our detection."""
+        is_available, message = check_pdf_available()
+        assert is_available == PDF_AVAILABLE
 
-    def test_check_weasyprint_error_message_when_unavailable(self):
-        """Test that error message is provided when WeasyPrint is unavailable."""
-        is_available, message = check_weasyprint_available()
+    def test_check_pdf_error_message_when_unavailable(self):
+        """Test that error message is provided when xhtml2pdf is unavailable."""
+        is_available, message = check_pdf_available()
         if not is_available:
             # Should have helpful error message
             assert len(message) > 0
@@ -48,22 +48,9 @@ class TestPDFDependencyCheck:
             # Should have empty message when available
             assert message == ""
 
-    def test_check_weasyprint_includes_platform_instructions(self):
-        """Test that error message includes platform-specific instructions."""
-        is_available, message = check_weasyprint_available()
-        if not is_available:
-            import platform
-            system = platform.system()
-            if system == "Windows":
-                assert "GTK" in message or "gtk" in message.lower()
-            elif system == "Darwin":
-                assert "brew" in message or "Homebrew" in message
-            # Message should have installation steps
-            assert "1." in message and "2." in message
-
     def test_generate_pdf_raises_on_missing_dependencies(self, handler, tmp_path):
         """Test that generate_chapter_pdf raises RuntimeError when dependencies missing."""
-        if not WEASYPRINT_AVAILABLE:
+        if not PDF_AVAILABLE:
             chapter_id = handler.create_chapter("Test", "")
             frontmatter = {'id': chapter_id, 'title': 'Test', 'subtitle': '', 'events': []}
             handler.save_chapter(chapter_id, frontmatter, "Content")
@@ -153,7 +140,7 @@ class TestChapterPreview:
 class TestChapterPDF:
     """Tests for PDF generation."""
 
-    @pytest.mark.skipif(not WEASYPRINT_AVAILABLE, reason="WeasyPrint requires GTK libraries (not installed)")
+    @pytest.mark.skipif(not PDF_AVAILABLE, reason="xhtml2pdf not installed")
     def test_generate_pdf(self, handler, tmp_path):
         """Test generating PDF for a chapter."""
         chapter_id = handler.create_chapter("PDF Test", "")
@@ -171,7 +158,7 @@ class TestChapterPDF:
         assert pdf_path.exists()
         assert pdf_path.stat().st_size > 0  # PDF has content
 
-    @pytest.mark.skipif(not WEASYPRINT_AVAILABLE, reason="WeasyPrint requires GTK libraries (not installed)")
+    @pytest.mark.skipif(not PDF_AVAILABLE, reason="xhtml2pdf not installed")
     def test_generate_pdf_nonexistent_chapter(self, handler, tmp_path):
         """Test PDF generation for non-existent chapter raises error."""
         pdf_path = tmp_path / "test.pdf"

@@ -99,7 +99,7 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ### Technisch
 - Flask Backend mit Python 3.10+
-- WeasyPrint für PDF-Generierung
+- xhtml2pdf für PDF-Generierung
 - Markdown-basierte Datenspeicherung
 - YAML Frontmatter für Metadaten
 - Vollständige Test-Abdeckung (62% gesamt, 96% kritische Module)

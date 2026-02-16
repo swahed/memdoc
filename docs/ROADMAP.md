@@ -69,7 +69,7 @@ See `AI_FEATURES_BACKLOG.md` for detailed designs:
 - Interview mode, photo-triggered memories
 
 ### Other Ideas (backlog)
-- Page numbers visible in scrolling preview (requires JavaScript-based pagination)
+- Paged scrolling preview with page numbers and visible chapter breaks (requires JavaScript-based pagination)
 - Multiple memoir projects
 - EPUB export
 - Spell check integration

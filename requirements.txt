@@ -10,7 +10,7 @@ markdown2==2.4.12
 # For now, basic memoir writing works without them
 
 # PDF Generation (Phase 5)
-WeasyPrint==67.0
+xhtml2pdf==0.2.17
 
 # Image Processing (Phase 3)
 Pillow==12.0.0

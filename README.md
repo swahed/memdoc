@@ -133,7 +133,7 @@ This is a personal project, but suggestions and bug reports are welcome via [Iss
 Built with:
 - [Flask](https://flask.palletsprojects.com/) - Web framework
 - [PyInstaller](https://pyinstaller.org/) - Standalone executable builder
-- [WeasyPrint](https://weasyprint.org/) - PDF generation
+- [xhtml2pdf](https://xhtml2pdf.readthedocs.io/) - PDF generation
 - [Pillow](https://python-pillow.org/) - Image processing
 
 Inspired by [iA Writer](https://ia.net/writer) for the clean writing interface.

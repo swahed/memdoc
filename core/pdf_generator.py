@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-def check_weasyprint_available() -> Tuple[bool, str]:
+def check_pdf_available() -> Tuple[bool, str]:
     """
-    Check if WeasyPrint is available and can generate PDFs.
+    Check if xhtml2pdf is available and can generate PDFs.
 
     Returns:
         Tuple of (is_available, error_message)
@@ -18,49 +18,19 @@ def check_weasyprint_available() -> Tuple[bool, str]:
         If not available, error_message contains user-friendly instructions.
     """
     try:
-        from weasyprint import HTML, CSS
-        # Try a simple operation to ensure dependencies are working
-        test_html = HTML(string='<html><body>Test</body></html>')
+        from xhtml2pdf import pisa
         return True, ""
-    except (ImportError, OSError) as e:
-        error_msg = str(e)
-
-        # Provide platform-specific installation instructions
-        import platform
-        system = platform.system()
-
-        if system == "Windows":
-            instructions = """Für den PDF-Export werden GTK-Bibliotheken benötigt, die nicht installiert sind.
-
-So aktivierst du den PDF-Export unter Windows:
-1. Lade GTK3 Runtime herunter: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases
-2. Führe das Installationsprogramm aus
-3. Starte MemDoc neu
+    except ImportError:
+        instructions = """PDF-Export ist nicht verfügbar. Die Bibliothek xhtml2pdf ist nicht installiert.
 
 Alternativ: Nutze die Vorschau-Funktion und klicke dort auf „Drucken", um als PDF zu speichern."""
-        elif system == "Darwin":  # macOS
-            instructions = """Für den PDF-Export werden Systembibliotheken benötigt, die nicht installiert sind.
-
-So aktivierst du den PDF-Export unter macOS:
-1. Installiere Homebrew falls nötig: https://brew.sh
-2. Führe aus: brew install pango
-3. Starte MemDoc neu
-
-Alternativ: Nutze die Vorschau-Funktion und klicke dort auf „Drucken", um als PDF zu speichern."""
-        else:  # Linux
-            instructions = """Für den PDF-Export werden Systembibliotheken benötigt, die möglicherweise nicht installiert sind.
-
-So aktivierst du den PDF-Export unter Linux:
-1. Installiere die benötigten Pakete:
-   - Ubuntu/Debian: sudo apt-get install libpango-1.0-0 libpangoft2-1.0-0
-   - Fedora: sudo dnf install pango
-2. Starte MemDoc neu
-
-Alternativ: Nutze die Vorschau-Funktion und klicke dort auf „Drucken", um als PDF zu speichern."""
-
         return False, instructions
     except Exception as e:
         return False, f"PDF-Export nicht verfügbar: {str(e)}"
+
+
+# Keep old name as alias for backwards compatibility in tests
+check_weasyprint_available = check_pdf_available
 
 
 def generate_pdf(memoir_metadata: Dict, chapters: List[Dict], output_path: Path) -> None:
@@ -416,32 +386,27 @@ def generate_chapter_pdf(memoir_handler, chapter_id: str, output_path: Path) -> 
     Returns:
         True if successful, raises exception otherwise
     """
-    # Check if WeasyPrint is available
-    is_available, error_message = check_weasyprint_available()
+    is_available, error_message = check_pdf_available()
     if not is_available:
         raise RuntimeError(error_message)
 
-    from weasyprint import HTML, CSS
+    from xhtml2pdf import pisa
 
     # Generate HTML content
     html_content = generate_chapter_preview_html(memoir_handler, chapter_id)
 
-    # Convert to PDF with WeasyPrint
-    HTML(string=html_content, base_url=str(memoir_handler.data_dir)).write_pdf(
-        output_path,
-        stylesheets=[CSS(string='''
-            @page {
-                size: A4;
-                margin: 2.5cm 2cm;
-                @bottom-center {
-                    content: counter(page);
-                    font-family: 'Helvetica Neue', Arial, sans-serif;
-                    font-size: 9pt;
-                    color: #999;
-                }
-            }
-        ''')]
-    )
+    # Prepare HTML for xhtml2pdf (resolve images, add page number footer)
+    html_content = _prepare_html_for_pdf(html_content, memoir_handler.data_dir)
+
+    with open(output_path, "wb") as f:
+        pisa_status = pisa.CreatePDF(
+            html_content,
+            dest=f,
+            link_callback=lambda uri, rel: _resolve_image_path(uri, memoir_handler.data_dir)
+        )
+
+    if pisa_status.err:
+        raise RuntimeError(f"PDF-Generierung fehlgeschlagen (Fehlercode: {pisa_status.err})")
 
     return True
 
@@ -457,39 +422,170 @@ def generate_memoir_pdf(memoir_handler, output_path: Path) -> bool:
     Returns:
         True if successful, raises exception otherwise
     """
-    # Check if WeasyPrint is available
-    is_available, error_message = check_weasyprint_available()
+    is_available, error_message = check_pdf_available()
     if not is_available:
         raise RuntimeError(error_message)
 
-    from weasyprint import HTML, CSS
+    from xhtml2pdf import pisa
 
     # Generate HTML content
     html_content = generate_memoir_preview_html(memoir_handler)
 
-    # Convert to PDF with WeasyPrint
-    HTML(string=html_content, base_url=str(memoir_handler.data_dir)).write_pdf(
-        output_path,
-        stylesheets=[CSS(string='''
-            @page {
-                size: A4;
-                margin: 2.5cm 2cm;
-                @bottom-center {
-                    content: counter(page);
-                    font-family: 'Helvetica Neue', Arial, sans-serif;
-                    font-size: 9pt;
-                    color: #999;
-                }
-            }
-            @page cover {
-                @bottom-center {
-                    content: none;
-                }
-            }
-        ''')]
-    )
+    # Prepare HTML for xhtml2pdf (resolve images, add page number footer)
+    html_content = _prepare_html_for_pdf(html_content, memoir_handler.data_dir, is_memoir=True)
+
+    with open(output_path, "wb") as f:
+        pisa_status = pisa.CreatePDF(
+            html_content,
+            dest=f,
+            link_callback=lambda uri, rel: _resolve_image_path(uri, memoir_handler.data_dir)
+        )
+
+    if pisa_status.err:
+        raise RuntimeError(f"PDF-Generierung fehlgeschlagen (Fehlercode: {pisa_status.err})")
 
     return True
+
+
+def _resolve_image_path(uri: str, data_dir) -> str:
+    """
+    xhtml2pdf link_callback: resolve image URIs to local file paths.
+
+    Maps /api/images/filename → {data_dir}/images/filename
+    """
+    import os
+
+    if uri.startswith('/api/images/'):
+        filename = uri.split('/api/images/')[-1]
+        local_path = os.path.join(str(data_dir), 'images', filename)
+        if os.path.exists(local_path):
+            return local_path
+
+    # For other URIs (http, absolute paths, etc.), return as-is
+    return uri
+
+
+def _prepare_html_for_pdf(html_content: str, data_dir, is_memoir: bool = False) -> str:
+    """
+    Prepare HTML for xhtml2pdf conversion.
+
+    - Replaces /api/images/ paths with absolute file paths
+    - Adds xhtml2pdf page number footer via @page @frame
+    - For memoir: suppresses page number on cover page
+    """
+    import os
+    import re
+
+    # Replace /api/images/ URLs with absolute file paths for xhtml2pdf
+    def replace_image_src(match):
+        filename = match.group(1)
+        local_path = os.path.join(str(data_dir), 'images', filename)
+        # Use forward slashes and file:// protocol for xhtml2pdf
+        local_path = local_path.replace('\\', '/')
+        return f'src="file:///{local_path}"'
+
+    html_content = re.sub(r'src="/api/images/([^"]+)"', replace_image_src, html_content)
+
+    # Restructure cover page for xhtml2pdf:
+    # xhtml2pdf fragments background-color across block-level children (h1, h2, p
+    # each get their own background box). Converting to inline spans fixes this.
+    # Also swap flexbox (unsupported) to padding for vertical spacing.
+    def restructure_cover(match):
+        inner = match.group(1)
+        bg_match = re.search(r'background-color:\s*([^;]+);', match.group(0))
+        bg_color = bg_match.group(1).strip() if bg_match else '#f5f5f5'
+        # Convert block elements to inline spans (prevents background fragmentation)
+        inner = re.sub(
+            r'<h1[^>]*>([^<]*)</h1>',
+            r'<span style="font-size: 36pt; font-weight: bold; color: #1a1a1a;">\1</span><br/><br/>',
+            inner
+        )
+        inner = re.sub(
+            r'<h2[^>]*>([^<]*)</h2>',
+            r'<span style="font-size: 22pt; color: #555;">\1</span><br/><br/><br/>',
+            inner
+        )
+        inner = re.sub(
+            r'<p[^>]*>([^<]*)</p>',
+            r'<span style="font-size: 16pt; color: #333;">\1</span>',
+            inner
+        )
+        return (
+            f'<div class="cover-page" style="background-color: {bg_color}; '
+            f'text-align: center; padding: 6cm 2cm 2cm 2cm; '
+            f'page-break-after: always; font-family: Georgia, serif;">'
+            f'{inner}</div>'
+        )
+
+    html_content = re.sub(
+        r'<div class="cover-page" style="[^"]*">\s*(.*?)\s*</div>',
+        restructure_cover,
+        html_content,
+        flags=re.DOTALL
+    )
+
+    # Strip CSS constructs that xhtml2pdf can't parse:
+    # - @bottom-center { ... } blocks inside @page
+    # - @page cover { ... } named page rules
+    # - @media print { ... } blocks
+    # - .cover-page { page: cover; } rule
+    # - .chapters-wrapper { counter-reset: page; } rule
+    html_content = re.sub(r'@bottom-center\s*\{[^}]*\}', '', html_content)
+    html_content = re.sub(r'@page\s+cover\s*\{[^}]*\}', '', html_content)
+    html_content = re.sub(r'@media\s+print\s*\{[^}]*\{[^}]*\}[^}]*\}', '', html_content)
+    html_content = re.sub(r'\.cover-page\s*\{[^}]*page:\s*cover;[^}]*\}', '', html_content)
+    html_content = re.sub(r'\.chapters-wrapper\s*\{[^}]*counter-reset:\s*page;[^}]*\}', '', html_content)
+
+    # Clean up the existing @page block (now empty of @bottom-center)
+    # Replace it with our xhtml2pdf-compatible version
+    html_content = re.sub(
+        r'@page\s*\{\s*size:\s*A4;\s*margin:\s*[^}]*\}',
+        '',
+        html_content
+    )
+
+    # Inject xhtml2pdf-specific CSS and page number footer
+    # xhtml2pdf uses @page { @frame } for running headers/footers
+    # and <pdf:pagenumber/> tag for page numbers
+    xhtml2pdf_css = """
+        /* xhtml2pdf page setup */
+        @page {
+            size: A4;
+            margin: 2.5cm 2cm 3cm 2cm;
+            @frame footer {
+                -pdf-frame-content: page-footer;
+                bottom: 0.5cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+
+    """
+
+    if is_memoir:
+        xhtml2pdf_css += """
+        @page cover_page {
+            size: A4;
+            margin: 2.5cm 2cm;
+        }
+        .cover-page {
+            page: cover_page;
+        }
+        """
+
+    # Insert xhtml2pdf CSS before the closing </style> tag
+    html_content = html_content.replace('</style>', xhtml2pdf_css + '\n    </style>')
+
+    # Add page number footer div before </body>
+    footer_html = """
+    <div id="page-footer" style="text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 9pt; color: #999;">
+        <pdf:pagenumber/>
+    </div>
+"""
+    html_content = html_content.replace('</body>', footer_html + '</body>')
+
+    return html_content
 
 
 def generate_memoir_preview_html(memoir_handler) -> str:
@@ -807,6 +903,17 @@ def generate_memoir_preview_html(memoir_handler) -> str:
 
         em, i {{
             font-style: italic;
+        }}
+
+        /* Print: compact cover box, preserve backgrounds */
+        @media print {{
+            .cover-page {{
+                min-height: 0 !important;
+                display: block !important;
+                padding: 6cm 2cm 2cm 2cm !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }}
         }}
     </style>
 </head>

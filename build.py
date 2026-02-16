@@ -65,7 +65,7 @@ def get_hidden_imports():
         'PIL',  # Pillow
         'PIL.Image',
         'yaml',  # PyYAML
-        'weasyprint',  # PDF generation
+        'xhtml2pdf',  # PDF generation
     ]
 
 

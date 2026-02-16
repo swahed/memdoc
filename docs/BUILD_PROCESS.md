@@ -205,7 +205,7 @@ Add to `get_hidden_imports()` in `build.py` or update `--add-data` arguments.
 
 **.exe Too Large:**
 - Current size: ~27 MB (acceptable)
-- Includes Flask, WeasyPrint, Pillow, and dependencies
+- Includes Flask, xhtml2pdf, Pillow, and dependencies
 - To reduce: remove optional dependencies (PDF, images)
 
 ## Testing Builds

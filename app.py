@@ -362,8 +362,8 @@ def export_memoir_pdf():
 def check_pdf_availability():
     """Check if PDF export is available (WeasyPrint dependencies installed)."""
     try:
-        from core.pdf_generator import check_weasyprint_available
-        is_available, error_message = check_weasyprint_available()
+        from core.pdf_generator import check_pdf_available
+        is_available, error_message = check_pdf_available()
         return jsonify({
             'status': 'success',
             'available': is_available,
