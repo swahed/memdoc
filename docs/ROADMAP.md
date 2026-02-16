@@ -69,6 +69,8 @@ See `AI_FEATURES_BACKLOG.md` for detailed designs:
 - Interview mode, photo-triggered memories
 
 ### Other Ideas (backlog)
+- Edit existing image settings: click image button when cursor is on image markdown to re-open dialog with pre-filled caption/position/size
+- Full-page cover background in PDF/print export (xhtml2pdf limitation)
 - Paged scrolling preview with page numbers and visible chapter breaks (requires JavaScript-based pagination)
 - Multiple memoir projects
 - EPUB export

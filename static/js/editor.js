@@ -570,6 +570,12 @@ class Editor {
 
         // Enable insert button
         btnInsert.disabled = false;
+
+        // Auto-scroll to show caption field
+        setTimeout(() => {
+            const caption = document.getElementById('imageCaption');
+            if (caption) caption.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
     }
 
     insertImageToEditor() {

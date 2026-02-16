@@ -199,24 +199,13 @@ Du kannst einfache Formatierung verwenden:
                 <div class="upload-preview" id="uploadPreview" hidden>
                     <img id="previewImage" src="" alt="Vorschau">
 
-                    <!-- Image info -->
-                    <div class="image-info">
-                        <div class="info-row">
-                            <strong>Datei:</strong> <span id="infoFilename"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong>Größe:</strong> <span id="infoFileSize"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong>Abmessungen:</strong> <span id="infoDimensions"></span>
-                        </div>
-                    </div>
-
-                    <!-- Warnings -->
-                    <div id="imageWarnings" class="warnings"></div>
-
-                    <!-- Image options -->
+                    <!-- Caption + options right after preview -->
                     <div class="image-options">
+                        <div class="option-group full-width">
+                            <label for="imageCaption">Bildunterschrift (optional):</label>
+                            <input type="text" id="imageCaption" placeholder="Beschreibe das Foto...">
+                        </div>
+
                         <div class="option-group">
                             <label for="imagePosition">Position:</label>
                             <select id="imagePosition">
@@ -236,22 +225,22 @@ Du kannst einfache Formatierung verwenden:
                                 <option value="full">Volle Breite</option>
                             </select>
                         </div>
-
-                        <div class="option-group full-width">
-                            <label for="imageCaption">Bildunterschrift (optional):</label>
-                            <input type="text" id="imageCaption" placeholder="Beschreibe das Foto...">
-                        </div>
                     </div>
 
-                    <!-- Helpful tips -->
-                    <div class="image-tips">
-                        <h4>💡 Tipps für beste Ergebnisse:</h4>
-                        <ul>
-                            <li>Verwende Originalfotos von Kamera/Scanner (keine Screenshots)</li>
-                            <li>Ziele auf mindestens 1500 Pixel Breite für gute Druckqualität</li>
-                            <li>Mittlere Größe (500px) funktioniert gut für die meisten Memoiren-Fotos</li>
-                            <li>JPG-Format ist am besten für Fotos, PNG für Diagramme</li>
-                        </ul>
+                    <!-- Warnings -->
+                    <div id="imageWarnings" class="warnings"></div>
+
+                    <!-- Image info (secondary) -->
+                    <div class="image-info">
+                        <div class="info-row">
+                            <strong>Datei:</strong> <span id="infoFilename"></span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Größe:</strong> <span id="infoFileSize"></span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Abmessungen:</strong> <span id="infoDimensions"></span>
+                        </div>
                     </div>
                 </div>
             </div>
