@@ -174,6 +174,12 @@ def markdown_to_html(markdown_content: str, chapter_title: str = "") -> str:
         @page {{
             size: A4;
             margin: 2.5cm 2cm;
+            @bottom-center {{
+                content: counter(page);
+                font-family: 'Helvetica Neue', Arial, sans-serif;
+                font-size: 9pt;
+                color: #999;
+            }}
         }}
 
         body {{
@@ -427,6 +433,12 @@ def generate_chapter_pdf(memoir_handler, chapter_id: str, output_path: Path) -> 
             @page {
                 size: A4;
                 margin: 2.5cm 2cm;
+                @bottom-center {
+                    content: counter(page);
+                    font-family: 'Helvetica Neue', Arial, sans-serif;
+                    font-size: 9pt;
+                    color: #999;
+                }
             }
         ''')]
     )
@@ -462,6 +474,17 @@ def generate_memoir_pdf(memoir_handler, output_path: Path) -> bool:
             @page {
                 size: A4;
                 margin: 2.5cm 2cm;
+                @bottom-center {
+                    content: counter(page);
+                    font-family: 'Helvetica Neue', Arial, sans-serif;
+                    font-size: 9pt;
+                    color: #999;
+                }
+            }
+            @page cover {
+                @bottom-center {
+                    content: none;
+                }
             }
         ''')]
     )
@@ -579,6 +602,26 @@ def generate_memoir_preview_html(memoir_handler) -> str:
         @page {{
             size: A4;
             margin: 2.5cm 2cm;
+            @bottom-center {{
+                content: counter(page);
+                font-family: 'Helvetica Neue', Arial, sans-serif;
+                font-size: 9pt;
+                color: #999;
+            }}
+        }}
+
+        @page cover {{
+            @bottom-center {{
+                content: none;
+            }}
+        }}
+
+        .cover-page {{
+            page: cover;
+        }}
+
+        .chapters-wrapper {{
+            counter-reset: page;
         }}
 
         body {{
@@ -769,7 +812,9 @@ def generate_memoir_preview_html(memoir_handler) -> str:
 </head>
 <body>
     {cover_html}
+    <div class="chapters-wrapper">
     {chapters_html}
+    </div>
 </body>
 </html>"""
 

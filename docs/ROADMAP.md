@@ -58,7 +58,7 @@ py -m pytest tests/ -q --ignore=tests/test_updater.py -k "not test_get_prompts"
 ### Phase 7: Export & Publishing
 Chapter-level preview and print already work. Remaining:
 - [ ] Automatic table of contents
-- [ ] Page numbering across chapters
+- [x] Page numbering in PDF export and print (no number on cover page)
 - [ ] Full memoir PDF export
 
 ### AI Features
@@ -69,6 +69,7 @@ See `AI_FEATURES_BACKLOG.md` for detailed designs:
 - Interview mode, photo-triggered memories
 
 ### Other Ideas (backlog)
+- Page numbers visible in scrolling preview (requires JavaScript-based pagination)
 - Multiple memoir projects
 - EPUB export
 - Spell check integration
